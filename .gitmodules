@@ -1,4 +1,0 @@
-[submodule "CLF.DotNet.ChannelAccess"]
-	path = CLF.DotNet.ChannelAccess
-	url = git@github.com:TineZata/CLF.DotNet.ChannelAccess.git
-	branch = main
