@@ -38,9 +38,13 @@
 </table>
 
 @code {
-
-  private ChannelsHandler _handler = new ChannelsHandler();
   private TextUpdateViewModel _defaultTextUpdate;
+  // private TextUpdateViewModel _defaultTextUpdate = new TextUpdateViewModel(
+  //       text: "1243.2244",
+  //       units: "mm",
+  //       tooltipText: "Default",
+  //       borderStatus: BorderStatus.Connected
+  //  );
 
   private TextUpdateViewModel _withoutUnitsTextUpdate = new TextUpdateViewModel(
        text: "Lorem Ipsum",
@@ -77,12 +81,14 @@
     borderStatus: BorderStatus.Invalid
   );
 
+  private ChannelsHandler _handler = new ChannelsHandler();
+
   protected override void OnInitialized()
   {
     base.OnInitialized();
-   _defaultTextUpdate = new TextUpdateViewModel(
-      channelRecord: new ChannelRecord("test1", _handler)
-   );
+    _defaultTextUpdate = new TextUpdateViewModel(
+       channelRecord: new ChannelRecord("test1", _handler)
+    );
   }
 
-  }
+}

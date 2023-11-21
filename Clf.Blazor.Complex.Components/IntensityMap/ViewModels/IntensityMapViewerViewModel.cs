@@ -30,7 +30,10 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
     public static int GraphHeight = 100;
     public static int TitleLineHeight = 24;
     public static int ControlsPanelWidth = 300;
-    public static double DisplayImageScalingFactor = 0.3;
+
+    public double XDisplayScalingFactor => (double)DisplaySize.Width / _imageWidth;
+    public double YDisplayScalingFactor => (double)DisplaySize.Height / _imageHeight;
+
     private DisplaySize m_displaySize;
     public DisplaySize DisplaySize
     {
@@ -460,6 +463,16 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
       }
     }
 
+    private string _friendlyName = "Viewer";
+
+    public string FriendlyName
+    {
+      get { return _friendlyName; }
+      set { SetProperty(ref _friendlyName, value); }
+    }
+
+
+
     public TextUpdateViewModel UserName { get ; }
     public LedViewModel CameraStatus { get; }
 
@@ -468,7 +481,6 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
     public IntensityMapImageViewModel        IntensityMapImage      { get ; }
     public IntensityMapProfileGraphViewModel HorizontalProfileGraph { get ; }
     public IntensityMapProfileGraphViewModel VerticalProfileGraph   { get ; }
-    public IntensityMapFixedDisplayViewModel              FixedDisplay { get; }
     public IntensityMapFeaturesViewModel                  Features { get; }
     
     // Child ViewModels access these properties when creating their Channels ...
@@ -476,7 +488,7 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
     public FilePickerService FilePickerService { get; }
     public string PvPrefix     { get ; } // eg 'SIM1:' 
     public string StreamPrefix { get ; } // eg 'cam1:' or 'image1' ... ?????????
-
+    public string StatsPrefix { get;}
     public ChannelAccess.ChannelsHandler ChannelsHandler { get ; }
 
     public ChannelRecord CreateChannelRecord ( string channelName )
@@ -491,34 +503,32 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
       string                        pvPrefix,      // eg 'SIM1:'
       string                        streamPrefix,  // eg 'cam1:'
       ChannelAccess.ChannelsHandler channelsHandler,
-      FilePickerService filePicker
+      FilePickerService filePicker,
+      string statsPrefix = "Stats1:",
+      double displayImageScalingFactor = 0.3,
+      DisplaySize? displaySize = null
     ) {
 
       FilePickerService = filePicker;
       PvPrefix        = pvPrefix ;
       StreamPrefix    = streamPrefix ;
+      StatsPrefix     = statsPrefix;
       ChannelsHandler = channelsHandler ;
 
-      m_displaySize = new(
-        (int)(ImageViewerStyle.DEFAULT_IMAGE_WIDTH * DisplayImageScalingFactor),
-        (int)(ImageViewerStyle.DEFAULT_IMAGE_HEIGHT * DisplayImageScalingFactor)
-      );
+      m_displaySize = displaySize ?? new DisplaySize(400, 400);
+            
 
       UserName = new TextUpdateViewModel(
         width:300,
         channelRecord : CreateChannelRecord(PvPrefix+"Username")
       ) ;
       CameraStatus = new LedViewModel(
-      width: 150,
-      isSquare: true,
-      onLabel: "Connected",
-      offLabel: "Not Connected",
       ledChannelRecord: CreateChannelRecord(PvPrefix + "cam1:CameraConnected_RBV").ToLedChannelRecord("1")
       );
 
       IntensityMapImage = new IntensityMapImageViewModel(
         parent      : this,
-        displayScalingFactor: DisplayImageScalingFactor
+        displaySize: DisplaySize
       ) ;
 
       // The 'vertical profile' graph (along the left hand side)
@@ -548,10 +558,9 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
       // { Width=300,Height=100 } ;
       // SURPRISINGLY, APPLYING THE WIDTH AND HEIGHT AS *PROPERTIES* DOESN'T WORK ...
 
-      FixedDisplay              = new IntensityMapFixedDisplayViewModel(this);
       Features                   = new IntensityMapFeaturesViewModel(this);
 
-      IntensityMapViewerViewModel_Logic_Initiliasation();
+      IntensityMapViewerViewModel_Logic_Initialisation();
     }
 
     private void OnImageViewerPropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -565,6 +574,7 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
 
     public void Dispose()
     {
+      Features.Dispose();
       IntensityMapImage.ImageViewer.PropertyChanged -= OnImageViewerPropertyChanged;
     }
   }

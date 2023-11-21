@@ -1,11 +1,10 @@
-﻿@page "/"
-@inject IJSRuntime _jsRunTime
-
-<h3>Sample components</h3>
+﻿@inject IJSRuntime _jsRunTime
 
 <div class="examples-container">
 
   <button @onclick="NavigateToLedExamples">LED</button>
+  
+  <button @onclick="NavigateToGraphExamples">Graph</button>
 
   <button @onclick="NavigateToTypescaleExamples">Type Scale</button>
 
@@ -45,12 +44,24 @@
 
   <button @onclick="NavigateToModalDialogExamples">Modal Dialog</button>
 
+  <button @onclick="NavigateToDropDownButtonExamples">Drop-down Button</button>
+
+  <button @onclick="NavigateToIconExamples">Icons</button>
+
+  <button @onclick="NavigateToCameraExamples">Camera</button>
+  
+  <button @onclick="NavigateToAreaDetectorExamples">Area Detector</button>
+
 </div>
 
 @code {
   public async Task NavigateToLedExamples()
   {
     await _jsRunTime.InvokeVoidAsync("open", "led-examples", "_blank");
+  }
+  public async Task NavigateToGraphExamples()
+  {
+    await _jsRunTime.InvokeVoidAsync("open", "graph-examples", "_blank");
   }
 
   public async Task NavigateToTypescaleExamples()
@@ -150,5 +161,24 @@
     await _jsRunTime.InvokeVoidAsync("open", "modal-dialog-examples", "_blank");
   }
 
+  public async Task NavigateToCameraExamples()
+  {
+    await _jsRunTime.InvokeVoidAsync("open", "/camera-examples", "_blank");
+  }
+  
+     public async Task NavigateToIconExamples()
+  {
+    await _jsRunTime.InvokeVoidAsync("open", "icon-examples", "_blank");
+  }
+
+  public async Task NavigateToDropDownButtonExamples()
+  {
+    await _jsRunTime.InvokeVoidAsync("open", "drop-down-button-examples", "_blank");
+  }
+
+  public async Task NavigateToAreaDetectorExamples()
+  {
+    await _jsRunTime.InvokeVoidAsync("open", "/", "_blank");
+  }
 }
 

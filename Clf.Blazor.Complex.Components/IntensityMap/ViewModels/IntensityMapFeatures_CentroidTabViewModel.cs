@@ -86,9 +86,9 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
 
       CentroidAlgorithm = new RadioButtonViewModel(
                 items: new ObservableCollection<string> { "Centre of Mass", "Edge Detection" },
-                isHorizontal: false,
+                isHorizontal: true,
                 width: 150,
-                height: 50,
+                height: 20,
                 channelRecord: parent.CreateChannelRecord(parent.PvPrefix + centroidPluginPrefix + "CentroidAlgorithm")
       );
 

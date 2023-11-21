@@ -10,6 +10,7 @@ using Clf.Blazor.Basic.Components.Controls.ViewModels.MonitorWidgetViewModels;
 
 using Clf.Blazor.Basic.Components.Controls.ViewModels;
 using Clf.Common.ImageProcessing;
+using Clf.Common.Drawing;
 
 namespace Clf.Blazor.Complex.IntensityMap.ViewModels
 {
@@ -18,10 +19,10 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
   {
     public ImageViewerViewModel ImageViewer { get; private set; }
 
-    public IntensityMapImageViewModel(IntensityMapViewerViewModel parent, double displayScalingFactor)
+    public IntensityMapImageViewModel(IntensityMapViewerViewModel parent, DisplaySize displaySize)
     {
       ImageViewer = new ImageViewerViewModel(
-        displayImageScalingFactor: displayScalingFactor
+        displaySize: displaySize
       )
       {
         OverlaysDescriptor = new OverlaysDescriptor(

@@ -1,0 +1,160 @@
+﻿@using Clf.Blazor.Basic.Components.Controls.Enums;
+@using System.Text;
+@using Clf.Blazor.Basic.Components.Controls.Interfaces;
+@inherits WidgetBase
+
+@if (Show)
+{
+  SetPlacement();
+  <div class="popup-wrapper popup-transform @_placementClasses @Class" style="--popup-translate-x:@_translateX; --popup-translate-y:@_translateY; --popup-scale:@Scale;">
+    @ChildContent
+  </div>
+}
+
+
+@code {
+
+  [Parameter]
+  public RenderFragment? ChildContent { get; set; }
+
+  [CascadingParameter]
+  public bool Show { get; set; } = false;
+
+  [Parameter]
+  public Position Position { get; set; } = Position.BottomLeft;
+
+  [Parameter]
+  public HorizontalDirection HorizontalDirection { get; set; } = HorizontalDirection.LeftToRight;
+
+  [Parameter]
+  public VerticalDirection VerticalDirection { get; set; } = VerticalDirection.TopToBottom;
+
+  [Parameter]
+  public double Scale { get; set; } = 1.0;
+
+  private string _translateX = "0%";
+  private string _translateY = "0%";
+  private string _placementClasses = "popup-bottom-right";
+
+  private static readonly Dictionary<(Position, HorizontalDirection, VerticalDirection), 
+  (string TranslateX, string TranslateY)> _placementCombinations = 
+  new Dictionary<(Position, HorizontalDirection, VerticalDirection), 
+  (string TranslateX, string TranslateY)>
+  {
+    {
+      (Position.BottomRight, HorizontalDirection.LeftToRight, VerticalDirection.TopToBottom)
+      , ("100%","100%")
+    },
+    {
+      (Position.BottomRight, HorizontalDirection.LeftToRight, VerticalDirection.BottomToTop)
+      , ("100%","0%")
+    },
+    {
+      (Position.BottomRight, HorizontalDirection.RightToLeft, VerticalDirection.TopToBottom)
+      , ("0%","100%")
+    },
+    {
+      (Position.BottomRight, HorizontalDirection.RightToLeft, VerticalDirection.BottomToTop)
+      , ("0%","0%")
+    },
+    {
+      (Position.TopRight, HorizontalDirection.LeftToRight, VerticalDirection.TopToBottom)
+      , ("100%","0%")
+    },
+    {
+      (Position.TopRight, HorizontalDirection.LeftToRight, VerticalDirection.BottomToTop)
+      , ("100%","-100%")
+    },
+    {
+      (Position.TopRight, HorizontalDirection.RightToLeft, VerticalDirection.TopToBottom)
+      , ("0%","0%")
+    },
+    {
+      (Position.TopRight, HorizontalDirection.RightToLeft, VerticalDirection.BottomToTop)
+      , ("0%","-100%")
+    },
+    {
+      (Position.BottomLeft, HorizontalDirection.LeftToRight, VerticalDirection.TopToBottom)
+      , ("0%","100%")
+    },
+    {
+      (Position.BottomLeft, HorizontalDirection.LeftToRight, VerticalDirection.BottomToTop)
+      , ("0%","0%")
+    },
+    {
+      (Position.BottomLeft, HorizontalDirection.RightToLeft, VerticalDirection.TopToBottom)
+      , ("-100%","100%")
+    },
+    {
+      (Position.BottomLeft, HorizontalDirection.RightToLeft, VerticalDirection.BottomToTop)
+      , ("-100%","0%")
+    },
+    {
+      (Position.TopLeft, HorizontalDirection.LeftToRight, VerticalDirection.TopToBottom)
+      , ("0%","0%")
+    },
+    {
+      (Position.TopLeft, HorizontalDirection.LeftToRight, VerticalDirection.BottomToTop)
+      , ("0%","-100%")
+    },
+    {
+      (Position.TopLeft, HorizontalDirection.RightToLeft, VerticalDirection.TopToBottom)
+      , ("-100%","0%")
+    },
+    {
+      (Position.TopLeft, HorizontalDirection.RightToLeft, VerticalDirection.BottomToTop)
+      , ("-100%","-100%")
+    }
+  };
+
+
+  private void SetPlacement()
+  {
+    _placementClasses = $"{GetPositionClass()} {GetHorizontalDirectionClass()} {GetVerticalDirectionClass()}";
+    var translate = _placementCombinations[(Position, HorizontalDirection, VerticalDirection)];
+    _translateX = translate.TranslateX;
+    _translateY = translate.TranslateY;
+  }
+
+  private string GetPositionClass()
+  {
+    switch (Position)
+    {
+      default:
+      case Position.BottomRight:
+        return "popup-bottom-right";
+      case Position.TopRight:
+        return "popup-top-right";
+      case Position.BottomLeft:
+        return "popup-bottom-left";
+      case Position.TopLeft:
+        return "popup-top-left";
+    }
+
+  }
+
+  private string GetHorizontalDirectionClass()
+  {
+    switch (HorizontalDirection)
+    {
+      default:
+      case HorizontalDirection.LeftToRight:
+        return "popup-left-to-right";
+      case HorizontalDirection.RightToLeft:
+        return "popup-right-to-left";
+    }
+  }
+
+  private string GetVerticalDirectionClass()
+  {
+    switch (VerticalDirection)
+    {
+      default:
+      case VerticalDirection.TopToBottom:
+        return "popup-top-to-bottom";
+      case VerticalDirection.BottomToTop:
+        return "popup-bottom-to-top";
+    }
+  }
+
+}

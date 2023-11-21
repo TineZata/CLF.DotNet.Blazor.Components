@@ -24,8 +24,19 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
     int _imageWidth = 0;
     int _imageHeight = 0;
 
-    private void IntensityMapViewerViewModel_Logic_Initiliasation()
+    private void IntensityMapViewerViewModel_Logic_Initialisation()
     {
+      ChannelsHandler.InstallChannel(
+        Hub.GetOrCreateChannel(PvPrefix + "Username"),
+        valueChangedHandler: (valueInfo, _) =>
+        {
+          var userName = valueInfo.ValueAsString();
+          if(!string.IsNullOrEmpty(userName))
+          {
+            FriendlyName = userName;
+          }
+        }
+      );
       ChannelsHandler.InstallChannel(
         m_profXhairXHighChannel = Hub.GetOrCreateChannel(PvPrefix + "ProfXhairX.HOPR")
       );
@@ -49,8 +60,6 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
           m_profXhairXHighChannel.PutValue(Convert.ToDouble(valueInfo.Value));
           m_softXHighChannel.PutValue(Convert.ToDouble(valueInfo.Value));
           _imageWidth = (int)valueInfo.Value;
-          var scaledWidth = (int)((int)valueInfo.Value * DisplayImageScalingFactor); //It will always be Int32
-          DisplaySize = new DisplaySize(scaledWidth, DisplaySize.Height);
         }
       );
 
@@ -61,8 +70,6 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
           m_profXhairYHighChannel.PutValue(Convert.ToDouble(valueInfo.Value));
           m_softYHighChannel.PutValue(Convert.ToDouble(valueInfo.Value));
           _imageHeight = (int)valueInfo.Value;
-          var scaledHeight = (int)((int)valueInfo.Value * DisplayImageScalingFactor); //It will always be Int32
-          DisplaySize = new DisplaySize(DisplaySize.Width, scaledHeight);
         }
       );
 
@@ -82,7 +89,7 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
         Hub.GetOrCreateChannel(PvPrefix + "ProfXhairX"),
         valueChangedHandler: (valueInfo, _) =>
         {
-          ProfileCrosshairX = Convert.ToInt32((double)valueInfo.Value * DisplayImageScalingFactor);
+          ProfileCrosshairX = Convert.ToInt32((double)valueInfo.Value * XDisplayScalingFactor);
         }
       );
 
@@ -90,7 +97,7 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
         Hub.GetOrCreateChannel(PvPrefix + "ProfXhairY"),
         valueChangedHandler: (valueInfo, _) =>
         {
-          ProfileCrosshairY = Convert.ToInt32((double)valueInfo.Value * DisplayImageScalingFactor);
+          ProfileCrosshairY = Convert.ToInt32((double)valueInfo.Value * YDisplayScalingFactor);
         }
       );
 
@@ -106,7 +113,7 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
         Hub.GetOrCreateChannel(PvPrefix + "SoftX"),
         valueChangedHandler: (valueInfo, _) =>
         {
-          SoftwareX = Convert.ToInt32((double)valueInfo.Value * DisplayImageScalingFactor);
+          SoftwareX = Convert.ToInt32((double)valueInfo.Value * XDisplayScalingFactor);
         }
       );
         
@@ -114,7 +121,7 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
             Hub.GetOrCreateChannel(PvPrefix + "Centroid1:RectangleBeamHeight"),
             valueChangedHandler: (valueInfo, _) =>
             {
-                EDRectangleHeight = Convert.ToInt32((int)valueInfo.Value * DisplayImageScalingFactor);
+                EDRectangleHeight = Convert.ToInt32((int)valueInfo.Value * YDisplayScalingFactor);
             }
         );
 
@@ -122,7 +129,7 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
             Hub.GetOrCreateChannel(PvPrefix + "Centroid1:RectangleBeamWidth"),
             valueChangedHandler: (valueInfo, _) =>
             {
-                EDRectangleWidth = Convert.ToInt32((int)valueInfo.Value * DisplayImageScalingFactor);
+                EDRectangleWidth = Convert.ToInt32((int)valueInfo.Value * XDisplayScalingFactor);
             }
         );
 
@@ -138,7 +145,7 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
             Hub.GetOrCreateChannel(PvPrefix + "Centroid1:CircleDiameter"),
             valueChangedHandler: (valueInfo, _) =>
             {
-                EDCircleRadius = (Convert.ToInt32((int)valueInfo.Value * DisplayImageScalingFactor))/2;
+                EDCircleRadius = (Convert.ToInt32((int)valueInfo.Value * XDisplayScalingFactor))/2;
             }
         );
         ChannelsHandler.InstallChannel(
@@ -189,7 +196,7 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
           if ( valueInfo.Value is int[] intArray )
           {
             ContourDataSet = intArray.Select(
-              i => (int) ( i * DisplayImageScalingFactor )
+              i => (int) ( i * XDisplayScalingFactor )
             ).ToArray() ;
           }
           else
@@ -204,7 +211,7 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
         Hub.GetOrCreateChannel(PvPrefix + "SoftY"),
         valueChangedHandler: (valueInfo, _) =>
         {
-          SoftwareY = Convert.ToInt32((double)valueInfo.Value * DisplayImageScalingFactor);
+          SoftwareY = Convert.ToInt32((double)valueInfo.Value * YDisplayScalingFactor);
         }
       );
 
@@ -312,9 +319,9 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
         Hub.GetOrCreateChannel(PvPrefix + "Centroid1:CentroidX"),
         valueChangedHandler: (valueInfo, _) =>
         {
-          EDCentroidX = Convert.ToInt32((int)valueInfo.Value * DisplayImageScalingFactor);
+          EDCentroidX = Convert.ToInt32((int)valueInfo.Value * XDisplayScalingFactor);
           if (FollowCentroid)
-            ProfileCrosshairX = Convert.ToInt32((int)valueInfo.Value * DisplayImageScalingFactor);
+            ProfileCrosshairX = Convert.ToInt32((int)valueInfo.Value * XDisplayScalingFactor);
         }
       );
 
@@ -322,9 +329,9 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
         Hub.GetOrCreateChannel(PvPrefix + "Centroid1:CentroidY"),
         valueChangedHandler: (valueInfo, _) =>
         {
-          EDCentroidY = Convert.ToInt32((int)valueInfo.Value * DisplayImageScalingFactor);
+          EDCentroidY = Convert.ToInt32((int)valueInfo.Value * YDisplayScalingFactor);
           if (FollowCentroid)
-            ProfileCrosshairY = Convert.ToInt32((int)valueInfo.Value * DisplayImageScalingFactor);
+            ProfileCrosshairY = Convert.ToInt32((int)valueInfo.Value * YDisplayScalingFactor);
         }
       );
       

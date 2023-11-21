@@ -55,7 +55,7 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
         );
       BackgroundSetNewBackground = CreateValueWriteActionButtonViewModel(parent.PvPrefix + hdf5PluginPrefix + "Capture", (short)0);
       BackgroundSetNewBackground.Text = "Set New Background";
-      BackgroundSetNewBackground.Width = 100;
+      BackgroundSetNewBackground.Width = 170;
       BackgroundSetNewBackground.Height = 40;
 
       BackgroundSubtractionStatus = new TextUpdateViewModel(
@@ -96,7 +96,7 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
       );
       BackgroundPluginSettings = new ActionButtonViewModel(
         text: "Background Subtraction Plugin Settings",
-        width: 170,
+        width: 300,
         height: 50
         );      
     }

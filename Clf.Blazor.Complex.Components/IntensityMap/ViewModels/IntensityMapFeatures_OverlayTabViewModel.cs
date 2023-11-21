@@ -49,7 +49,6 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
       );
       OverlayProfileReferenceShow = new CheckboxViewModel(
       label: "Show",
-      width: 60,
       channelRecord: parent.CreateChannelRecord(parent.PvPrefix + "ShowProfXhair")
       );
       OverlayProfileReferenceColor = new ColorPickerViewModel(
@@ -57,7 +56,6 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
       );
       OverlayProfileReferenceFollowCentroid = new CheckboxViewModel(
       label: "Follow Centroid",
-      width: 120,
       channelRecord: parent.CreateChannelRecord(parent.PvPrefix + centroidPluginPrefix + "FollowCentroid")
       );
       OverlaySoftwareReferenceGroupBox = new GroupBoxViewModel(
@@ -80,12 +78,10 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
       );
       OverlaySoftwareReferenceShow = new CheckboxViewModel(
       label: "Show Reference",
-      width: 130,
       channelRecord: parent.CreateChannelRecord(parent.PvPrefix + "ShowSoftXhair")
       );
       OverlaySoftwareReferenceBoxShow = new CheckboxViewModel(
       label: "Show Box",
-      width: 100,
       channelRecord: parent.CreateChannelRecord(parent.PvPrefix + "ShowSoftBox")
       );
       OverlaySoftwareReferenceColor = new ColorPickerViewModel(

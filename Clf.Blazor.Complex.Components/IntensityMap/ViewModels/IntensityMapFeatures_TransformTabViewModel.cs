@@ -43,7 +43,7 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
       TransformPluginSettings = new ActionButtonViewModel(
         text: "Transform Plugin Settings",
         height: 50,
-        width: 150
+        width: 200
         );
     }
     }
