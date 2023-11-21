@@ -5,8 +5,6 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.FileProviders;
 
-Clf.ChannelAccess.Settings.WhichDllsToUse = WhichDllsToUse.DaresburyReleaseDlls;
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
