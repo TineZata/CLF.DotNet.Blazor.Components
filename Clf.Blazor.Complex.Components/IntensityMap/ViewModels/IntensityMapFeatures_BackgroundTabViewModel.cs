@@ -44,14 +44,14 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
     }
     public IntensityMapFeatures_BackgroundTabViewModel(IntensityMapViewerViewModel parent)
     {
-      processPluginPrefix = "Process1:";
+      processPluginPrefix = ":Process1:";
       processTiffPluginPrefix = processPluginPrefix + "TIFF:";
-      hdf5PluginPrefix = "HDF1:";
+      hdf5PluginPrefix = ":HDF1:";
       BackgroundShow = new ComboBoxViewModel(
         width: 70,
         height: 20,
         itemsFromPv: true,
-        channelRecord: parent.CreateChannelRecord(parent.PvPrefix + "BackgroundTypeSel")
+        channelRecord: parent.CreateChannelRecord(parent.PvPrefix + ":BackgroundTypeSel")
         );
       BackgroundSetNewBackground = CreateValueWriteActionButtonViewModel(parent.PvPrefix + hdf5PluginPrefix + "Capture", (short)0);
       BackgroundSetNewBackground.Text = "Set New Background";

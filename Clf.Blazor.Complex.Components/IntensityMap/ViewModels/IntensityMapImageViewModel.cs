@@ -26,13 +26,7 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
       )
       {
         OverlaysDescriptor = new OverlaysDescriptor(
-      // Default ...
-      // m_overlaysDescriptor[0] Profile Crosshairs
-      // m_overlaysDescriptor[1] Software Crosshairs
-      // m_overlaysDescriptor[2] Software Box
-      // m_overlaysDescriptor[3] Contour (Under consideration for Centroid calculation) 
-      // m_overlaysDescriptor[4] Best fit rectangle for Centroid Calculation using Edge Detection
-      // m_overlaysDescriptor[5] Best fit circle for Centroid Calculation using Edge Detection
+      // Default 
       OverlayCrossDescriptor.FromCentrePoint(20, 20, 10, RgbByteValues.Red, false),
       OverlayCrossDescriptor.FromCentrePoint(50, 50, 10, RgbByteValues.Red, false),
       OverlayBoxDescriptor.FromCentrePoint(50, 50, 10, 10, RgbByteValues.Red, false),

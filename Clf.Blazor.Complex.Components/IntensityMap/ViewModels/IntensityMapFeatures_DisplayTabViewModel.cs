@@ -34,8 +34,8 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
       m_parent = parent;
       Hub.GetOrCreateLocalChannel(ChannelDescriptor.FromEncodedString($"{parent.PvPrefix + LOCALPV_AUTO_NORMALIZE}|i16|1"), true);
       Hub.GetOrCreateLocalChannel(ChannelDescriptor.FromEncodedString($"{parent.PvPrefix + LOCALPV_MANUAL_NORMALIZE_VALUE}|i32|255"), true);
-      Hub.GetOrCreateLocalChannel(ChannelDescriptor.FromEncodedString($"{parent.PvPrefix + "ShowProfileGraph"}|i16|1"), true);
-      Hub.GetOrCreateLocalChannel(ChannelDescriptor.FromEncodedString($"{parent.PvPrefix+ "ColourMap"}|enum:{string.Join(",", Enum.GetNames(typeof(ColourMapOption)).Select(name => name == "GreyScale" ? "Grey" : name))}|0"), true);
+      Hub.GetOrCreateLocalChannel(ChannelDescriptor.FromEncodedString($"{parent.PvPrefix + ":ShowProfileGraph"}|i16|1"), true);
+      Hub.GetOrCreateLocalChannel(ChannelDescriptor.FromEncodedString($"{parent.PvPrefix+ ":ColourMap"}|enum:{string.Join(",", Enum.GetNames(typeof(ColourMapOption)).Select(name => name == "GreyScale" ? "Grey" : name))}|0"), true);
 
 
       EPICSName = new TextUpdateViewModel(
@@ -63,7 +63,7 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
       );
       ColourMap = new ComboBoxViewModel(
         itemsFromPv: true,
-        channelRecord: parent.CreateChannelRecord(parent.PvPrefix + "ColourMap")
+        channelRecord: parent.CreateChannelRecord(parent.PvPrefix + ":ColourMap")
       );
 
       AutoNormalise = new CheckboxViewModel(
@@ -80,7 +80,7 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
 
       ShowProfileGraph = new CheckboxViewModel(
         label: "",
-        channelRecord: parent.CreateChannelRecord(parent.PvPrefix + "ShowProfileGraph")
+        channelRecord: parent.CreateChannelRecord(parent.PvPrefix + ":ShowProfileGraph")
       );
 
       ExportProfileGraphX = new ActionButtonViewModel(

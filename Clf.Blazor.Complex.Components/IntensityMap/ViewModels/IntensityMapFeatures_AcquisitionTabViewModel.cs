@@ -14,8 +14,8 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
     public ActionButtonViewModel StopAcquisition { get; }
     public TextUpdateViewModel DetectorStateRBV { get;}
     public TextUpdateViewModel AcquisitionStatusRBV { get; }
-    public ComboBoxViewModel TriggerMode { get; }
-    public TextUpdateViewModel TriggerModeRBV { get;}
+    public ComboBoxViewModel TriggerSource{ get; }
+    public TextUpdateViewModel TriggerSourceRBV { get;}
     public ComboBoxViewModel ImageMode { get;}
     public TextUpdateViewModel ImageModeRBV { get;}
     public TextEntryViewModel NumImages { get; }
@@ -28,6 +28,7 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
     public TextUpdateViewModel AcquirePeriodRBV { get; }
     public TextEntryViewModel Gain { get; }
     public TextUpdateViewModel GainRBV { get;}
+    public TextUpdateViewModel ImageRateRBV { get; }
     public IntensityMapFeatures_AcquisitionTabViewModel(IntensityMapViewerViewModel parent)
     {
       m_parent = parent;
@@ -97,13 +98,13 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
       channelRecord: parent.CreateChannelRecord(parent.PvPrefix + parent.StreamPrefix + "Gain_RBV")
       );
 
-      TriggerMode = new ComboBoxViewModel(
+      TriggerSource = new ComboBoxViewModel(
       itemsFromPv: true,
-      channelRecord: parent.CreateChannelRecord(parent.PvPrefix + parent.StreamPrefix + "TriggerMode")
+      channelRecord: parent.CreateChannelRecord(parent.PvPrefix + parent.StreamPrefix + "TriggerSource")
       );
 
-      TriggerModeRBV = new TextUpdateViewModel(
-      channelRecord: parent.CreateChannelRecord(parent.PvPrefix + parent.StreamPrefix + "TriggerMode_RBV")
+      TriggerSourceRBV = new TextUpdateViewModel(
+      channelRecord: parent.CreateChannelRecord(parent.PvPrefix + parent.StreamPrefix + "TriggerSource_RBV")
       );
 
       ImageMode = new ComboBoxViewModel(
@@ -125,6 +126,11 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
 
       NumImagesCounterRBV = new TextUpdateViewModel(
       channelRecord: parent.CreateChannelRecord(parent.PvPrefix + parent.StreamPrefix + "NumImagesCounter_RBV")
+      );
+
+      ImageRateRBV = new TextUpdateViewModel(
+      precision: 2,
+      channelRecord: parent.CreateChannelRecord(parent.PvPrefix + parent.StreamPrefix + "ArrayRate_RBV")
       );
 
       IntensityMapFeatures_AcquisitionTabViewModel_Logic_Initialisation();

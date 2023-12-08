@@ -13,6 +13,7 @@ using Clf.Common.Drawing;
 using Clf.Common.Graphs;
 using Clf.ChannelAccess;
 using Clf.Blazor.Common.FilePicker;
+using Clf.Blazor.Common.Interfaces;
 
 namespace Clf.Blazor.Complex.IntensityMap.ViewModels
 {
@@ -31,8 +32,8 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
     public static int TitleLineHeight = 24;
     public static int ControlsPanelWidth = 300;
 
-    public double XDisplayScalingFactor => (double)DisplaySize.Width / _imageWidth;
-    public double YDisplayScalingFactor => (double)DisplaySize.Height / _imageHeight;
+    public double XDisplayScalingFactor => (double)DisplaySize.Width / ImageWidth;
+    public double YDisplayScalingFactor => (double)DisplaySize.Height / ImageHeight;
 
     private DisplaySize m_displaySize;
     public DisplaySize DisplaySize
@@ -504,7 +505,7 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
       string                        streamPrefix,  // eg 'cam1:'
       ChannelAccess.ChannelsHandler channelsHandler,
       FilePickerService filePicker,
-      string statsPrefix = "Stats1:",
+      string statsPrefix = ":Stats1:",
       double displayImageScalingFactor = 0.3,
       DisplaySize? displaySize = null
     ) {
@@ -520,10 +521,10 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
 
       UserName = new TextUpdateViewModel(
         width:300,
-        channelRecord : CreateChannelRecord(PvPrefix+"Username")
+        channelRecord : CreateChannelRecord(PvPrefix+":Username")
       ) ;
       CameraStatus = new LedViewModel(
-      ledChannelRecord: CreateChannelRecord(PvPrefix + "cam1:CameraConnected_RBV").ToLedChannelRecord("1")
+      ledChannelRecord: CreateChannelRecord(PvPrefix + $"{streamPrefix}CameraConnected_RBV").ToLedChannelRecord("1")
       );
 
       IntensityMapImage = new IntensityMapImageViewModel(
@@ -577,6 +578,24 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
       Features.Dispose();
       IntensityMapImage.ImageViewer.PropertyChanged -= OnImageViewerPropertyChanged;
     }
+
+
+    public static IntensityMapViewerViewModel GenerateIntensityMapViewerViewModel(string Prefix, ChannelsHandler channelHandler, IFrameworkInteractionService _frameworkInteractionService, FilePickerService filePickerService, DisplaySize displaySize)
+    {
+
+      IntensityMapViewerViewModel _IntensityViewerViewModel = new IntensityMapViewerViewModel(Prefix, ":cam1:", channelHandler, filePickerService, displaySize: displaySize);
+      _IntensityViewerViewModel.Features.TransformTab.TransformPluginSettings.OnActionButtonClicked = () => { _frameworkInteractionService!.OpenPageInWindow("/Cameras/" + Prefix + "/Transform-Plugin-Settings", Prefix + "Transform-Plugin-Settings"); };
+      _IntensityViewerViewModel.Features.ROITab.ROIPluginSettings.OnActionButtonClicked = () => { _frameworkInteractionService!.OpenPageInWindow("/Cameras/" + Prefix + "/ROI-Plugin-Settings", Prefix + "ROI-Plugin-Settings"); };
+      // IntensityMapViewerViewModel.Features.HDF5Tab.Hdf5PluginSettings.OnActionButtonClicked = () => { _frameworkInteractionService!.OpenPageInWindow("/Cameras/" + Prefix + "/HDF5-Plugin-Settings", Prefix + "HDF5-Plugin-Settings"); };
+      _IntensityViewerViewModel.Features.TransformTab.TransformPluginSettings.OnActionButtonClicked = () => { _frameworkInteractionService!.OpenPageInWindow("/Cameras/" + Prefix + "/Transform-Plugin-Settings", Prefix + "Transform-Plugin-Settings"); };
+      _IntensityViewerViewModel.Features.StatisticsTab.StatisticsPluginSettings.OnActionButtonClicked = () => { _frameworkInteractionService!.OpenPageInWindow("/Cameras/" + Prefix + "/Statistics-Plugin-Settings", Prefix + "Statistics-Plugin-Settings"); };
+      //IntensityMapViewerViewModel.Features.KafkaTab.KafkaPluginSettings.OnActionButtonClicked = () => { _frameworkInteractionService!.OpenPageInWindow("/Cameras/" + Prefix + "/Kafka-Plugin-Settings", Prefix + "Kafka-Plugin-Settings"); };
+      //IntensityMapViewerViewModel.Features.BackgroundTab.BackgroundPluginSettings.OnActionButtonClicked = () => { _frameworkInteractionService!.OpenPageInWindow("/Cameras/" + Prefix + "/BackgroundSubtraction-Plugin-Settings", Prefix + "BackgroundSubtraction-Plugin-Settings"); };
+      _IntensityViewerViewModel.Features.AdvancedTab.CameraDriverSettings.OnActionButtonClicked = () => { _frameworkInteractionService!.OpenPageInWindow("/Cameras/" + Prefix + "/Camera-Driver-Settings", Prefix + "Camera-Driver-Settings"); };
+      _IntensityViewerViewModel.Features.AdvancedTab.CameraAdvancedDriverSettings.OnActionButtonClicked = () => { _frameworkInteractionService!.OpenPageInWindow("/Cameras/" + Prefix + "/Advanced-Camera-Driver-Settings", Prefix + "Advanced-Camera-Driver-Settings"); };
+      return _IntensityViewerViewModel;
+    }
+
   }
 
 }

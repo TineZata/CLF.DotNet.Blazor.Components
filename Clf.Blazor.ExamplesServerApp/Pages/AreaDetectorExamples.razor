@@ -12,6 +12,7 @@
 @using Clf.Blazor.Complex.IntensityMap.Views
 @using Clf.ChannelAccess;
 @using Clf.Common.Drawing;
+@using System.Diagnostics;
 @inject FilePickerService FilePicker
 @implements IDisposable
 
@@ -26,7 +27,7 @@
               <SingleColourIcon class="clf-pane-header-icon" IconId="clf_ic_settings_24_regular" />
             </Icon>
             <ChildContent>
-              <Popup Scale="0.75">
+              <Popup>
                 <Tabs Direction="Direction.Vertical">
                   <Tab Title="Display" Name="display">
                     <IntensityMapFeatures_DisplayTab ViewModel="@camera.Features.DisplayTab" />
@@ -47,24 +48,35 @@
         </ChildContent>
       </DashboardPane>
     }
-    
   </Dashboard>
 </DashboardPanel>
 
 @code {
   private List<IntensityMapViewerViewModel> _cameras = new List<IntensityMapViewerViewModel>();
   private ChannelsHandler _channelsHandler = new ChannelsHandler();
-  
-  protected override void OnInitialized()
+
+  protected override async Task OnInitializedAsync()
   {
-    base.OnInitialized();
+    await base.OnInitializedAsync();
+
     //EPAC-DEV:CAM1
-    _cameras.Add(new IntensityMapViewerViewModel("EPAC-DEV:CAM1" + ":", "cam1:", _channelsHandler, FilePicker, displaySize: new DisplaySize(580, 364)) { FriendlyName = "EPAC-DEV:CAM1" });
-    _cameras.Add(new IntensityMapViewerViewModel("EPAC-DEV:CAM2" + ":", "cam1:", _channelsHandler, FilePicker, displaySize: new DisplaySize(580, 364)) { FriendlyName = "EPAC-DEV:CAM2" });
-    _cameras.Add(new IntensityMapViewerViewModel("EPAC-DEV:CAM3" + ":", "cam1:", _channelsHandler, FilePicker, displaySize: new DisplaySize(580, 364)) { FriendlyName = "EPAC-DEV:CAM3" });
-    _cameras.Add(new IntensityMapViewerViewModel("EPAC-DEV:CAM4" + ":", "cam1:", _channelsHandler, FilePicker, displaySize: new DisplaySize(580, 364)) { FriendlyName = "EPAC-DEV:CAM4" });
-    _cameras.Add(new IntensityMapViewerViewModel("EPAC-DEV:CAM5" + ":", "cam1:", _channelsHandler, FilePicker, displaySize: new DisplaySize(580, 364)) { FriendlyName = "EPAC-DEV:CAM5" });
-    _cameras.Add(new IntensityMapViewerViewModel("EPAC-DEV:CAM6" + ":", "cam1:", _channelsHandler, FilePicker, displaySize: new DisplaySize(580, 364)) { FriendlyName = "EPAC-DEV:CAM6" });
+    Stopwatch stopwatch = new Stopwatch();
+    stopwatch.Start();
+    InitializeCameraAsync();
+    stopwatch.Stop();
+    Console.WriteLine("Time elapsed: {0}", stopwatch.Elapsed);
+  }
+
+  private async void InitializeCameraAsync()
+  {
+    await Task.Run(() =>
+    {
+      for (int i = 1; i <= 20; i++)
+      {
+        _cameras.Add(new IntensityMapViewerViewModel($"EPAC-DEV:CAM{i}" + ":", "cam1:", _channelsHandler, FilePicker, displaySize: new DisplaySize(580, 364)) { FriendlyName = $"EPAC-DEV:CAM{i}" });
+        InvokeAsync(StateHasChanged);
+      }
+    });
   }
 
   void IDisposable.Dispose()

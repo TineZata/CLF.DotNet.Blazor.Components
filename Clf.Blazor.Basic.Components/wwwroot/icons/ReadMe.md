@@ -92,6 +92,7 @@
 * clf_ic_limit_left_24_regular
 * clf_ic_limit_right_24_regular
 * clf_ic_energise_24_regular
+* clf_ic_swap_24_regular
 
 > This icon library is based on fluent system icons from Microsoft.
 > The Github Repo [FluentUI-system-icons](https://github.com/microsoft/fluentui-system-icons)

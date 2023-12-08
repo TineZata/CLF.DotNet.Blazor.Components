@@ -39,13 +39,13 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
     public IntensityMapFeatures_ROITabViewModel(IntensityMapViewerViewModel parent)
     {
       m_parent = parent;
-      camPluginPrefix = "cam1:";
-      roiPluginPrefix = "ROI1:";
+      camPluginPrefix = ":cam1:";
+      roiPluginPrefix = ":ROI1:";
 
       ROIMethod = new RadioButtonViewModel(
           items: new ObservableCollection<string> { "Camera ROI", "Software ROI" },
           isHorizontal: false,
-          channelRecord: parent.CreateChannelRecord(parent.PvPrefix + "ROIMethod")
+          channelRecord: parent.CreateChannelRecord(parent.PvPrefix + ":ROIMethod")
       );
 
       CameraROISizeXSet = new TextEntryViewModel(

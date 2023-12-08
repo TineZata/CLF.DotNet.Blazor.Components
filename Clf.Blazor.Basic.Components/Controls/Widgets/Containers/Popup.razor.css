@@ -18,47 +18,9 @@
   font-weight: var(--clf-medium-font-weight);
   font-size: var(--clf-default-font-size);
   overflow: hidden;
+  top: calc(100% + var(--popup-margin));
+  left: 0px;
 }
 
-.popup-bottom-right {
-  bottom: 0;
-  right: 0;
-}
-
-.popup-top-right {
-  top: 0;
-  right: 0;
-}
-
-.popup-bottom-left {
-  bottom: 0;
-  left: 0;
-}
-
-.popup-top-left {
-  top: 0;
-  left: 0;
-}
-
-.popup-left-to-right {
-  --popup-margin-x: var(--popup-margin);
-}
-
-.popup-right-to-left {
-  --popup-margin-x: calc(var(--popup-margin) * -1);
-}
-
-.popup-top-to-bottom {
-  --popup-margin-y: var(--popup-margin);
-}
-
-.popup-bottom-to-top {
-  --popup-margin-y: calc(var(--popup-margin) * -1);
-}
-
-.popup-transform {
-  transform-origin: top left;
-  transform: translate(calc(var(--popup-translate-x) + var(--popup-margin-x)),calc(var(--popup-translate-y) + var(--popup-margin-y))) scale(var(--popup-scale));
-}
 
 

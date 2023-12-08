@@ -10,7 +10,6 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
   {
     private IntensityMapViewerViewModel parent;
     public IntensityMapFeatures_DisplayTabViewModel DisplayTab { get; }
-
     public IntensityMapFeatures_CentroidTabViewModel CentroidTab { get; }
     public IntensityMapFeatures_AcquisitionTabViewModel AcquisitionTab { get; }
     public IntensityMapFeatures_ROITabViewModel ROITab { get; }

@@ -42,7 +42,7 @@ namespace Clf.Blazor.Complex.IntensityMap.ViewModels
         }
         );
         m_parent.ChannelsHandler.InstallChannel(
-            Hub.GetOrCreateChannel(m_parent.PvPrefix + "ColourMap"),
+            Hub.GetOrCreateChannel(m_parent.PvPrefix + ":ColourMap"),
             valueChangedHandler: (valueInfo, _) =>
             {
                 m_parent.IntensityMapImage.ImageViewer.ColourMapOption = (ColourMapOption)((short)valueInfo.Value);

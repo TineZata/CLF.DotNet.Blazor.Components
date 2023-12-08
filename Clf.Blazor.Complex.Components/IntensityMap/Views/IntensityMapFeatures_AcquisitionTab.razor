@@ -36,10 +36,10 @@
     <TextEntry class="acquisition-tab-common-width" ViewModel="@ViewModel.Gain" />
     <TextUpdate class="acquisition-tab-common-width" ViewModel="@ViewModel.GainRBV" />
   </div>
-  <label>Trigger Mode</label>
+  <label>Trigger Source</label>
   <div class="acquisition-tab-flex">
-    <ComboBox class="acquisition-tab-common-width" ViewModel="@ViewModel.TriggerMode" />
-    <TextUpdate class="acquisition-tab-common-width" ViewModel="@ViewModel.TriggerModeRBV" />
+    <ComboBox class="acquisition-tab-common-width" ViewModel="@ViewModel.TriggerSource" />
+    <TextUpdate class="acquisition-tab-common-width" ViewModel="@ViewModel.TriggerSourceRBV" />
   </div>
   <label>Image Mode</label>
   <div class="acquisition-tab-flex">
@@ -55,6 +55,8 @@
   <div class="acquisition-tab-second-col">
     <TextUpdate class="acquisition-tab-common-width" ViewModel="@ViewModel.NumImagesCounterRBV" />
   </div>
+  <label>Image Rate</label>
+  <TextUpdate class="acquisition-tab-common-width" ViewModel="@ViewModel.ImageRateRBV" />
 </div>
 
 @code {
