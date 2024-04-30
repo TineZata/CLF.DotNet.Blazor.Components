@@ -21,7 +21,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\CLF.DotNet.ChannelAccess\Clf.ChannelAccess\Clf.ChannelAccess.csproj" />
     <ProjectReference Include="..\Clf.GraphViz\Clf.GraphViz.csproj" />
   </ItemGroup>
   

@@ -1,4 +1,4 @@
-﻿@using Clf.Blazor.Basic.Components.Controls.ViewModels.UpdateWidgetViewModels
+﻿@using Convergence
 @using Clf.Blazor.Basic.Components.Controls.Models
 @using Clf.Blazor.Basic.Components.Controls.Widgets.Containers
 @using Clf.Blazor.Basic.Components.Controls.Widgets.Helpers
@@ -8,28 +8,26 @@
 @inherits WidgetBase
 @implements IDisposable
 
-@if (ViewModel.IsVisible)
+@if (IsVisible)
 {
-  <Alarm BorderStatus="@ViewModel.BorderStatus" ContentDisabledTooltip="@(ViewModel.ShowTooltip? ViewModel.TooltipText:string.Empty)" IsContentDisabled="@ViewModel.IsDisabled">
-    @if (ViewModel.IsMultiLine)
+  <Alarm BorderStatus="@BorderStatus" ContentDisabledTooltip="@(ShowTooltip? TooltipText:string.Empty)" IsContentDisabled="@IsDisabled">
+    @if (IsMultiLine)
     {
-      <Tooltip Text="@(ViewModel.ShowTooltip? ViewModel.TooltipText:string.Empty)">
+      <Tooltip Text="@(ShowTooltip? TooltipText:string.Empty)">
         <textarea class="text-area @Class"
-                  style="--text-input-width:@GetWidth(); --text-input-height:@GetHeight()"
-                  disabled="@ViewModel.GetDisableStatus()"
-        @bind="ViewModel.Text" @bind:event="oninput" @onkeydown="@ViewModel.OnEnterKeyDownAsync" />
+            style="--text-input-width:@GetWidth(); --text-input-height:@GetHeight()"
+            disabled="@ShowTooltip"
+            @bind="Text" @bind:event="oninput" @onkeydown="@OnEnterKeyDownAsync" />
       </Tooltip>
     }
     else
     {
-      <Tooltip Text="@(ViewModel.ShowTooltip? ViewModel.TooltipText:string.Empty)">
-        <div class="text-entry @Class"
-             style="--text-input-width:@GetWidth(); --text-input-height:@GetHeight()">
-          <input class="text-input" type="text" disabled="@ViewModel.GetDisableStatus()" show-units="@GetShowUnits()"
-          @bind="ViewModel.Text" @bind:event="oninput" @onkeydown="@ViewModel.OnEnterKeyDownAsync" />
+      <Tooltip Text="@(ShowTooltip? TooltipText:string.Empty)">
+        <div class="text-entry @Class" style="--text-input-width:@GetWidth(); --text-input-height:@GetHeight()">
+            <input class="text-input" type="text" disabled="@ShowTooltip" show-units="@GetShowUnits()" @bind="Text" @bind:event="oninput" @onkeydown="@OnEnterKeyDownAsync" />
           @if (GetShowUnits())
           {
-            <span class="clf-units" disabled="@ViewModel.GetDisableStatus()">@ViewModel.Units</span>
+            <span class="clf-units" disabled="@ShowUnits">@Units</span>
           }
         </div>
       </Tooltip>
@@ -39,34 +37,94 @@
 
 @code
 {
-  [Parameter]
-  public TextEntryViewModel ViewModel { get; set; } = new TextEntryViewModel();
+    [Parameter]
+    public string PVName { get; set; } = string.Empty;
+    [Parameter]
+    public Type PVDataType { get; set; } = typeof(string);
+    [Parameter]
+    public int PVElementCount { get; set; } = 1;
+    [Parameter]
+    public bool IsDisabled { get; set; } = false;
+    [Parameter]
+    public BorderStatus BorderStatus { get; set; } = BorderStatus.NotConnected;
+    [Parameter]
+    public string Text { get; set; } = string.Empty;
+    [Parameter]
+    public string Units { get; set; } = string.Empty;
+    [Parameter]
+    public bool ShowUnits { get; set; } = false;
+    [Parameter]
+    public bool IsMultiLine { get; set; } = false;
+    [Parameter]
+    public int Precision { get; set; } = -1;
+    [Parameter]
+    public bool IsDisabledOnEnter { get; set; } = false;
+    [Parameter]
+    public bool WaitForAcknowledgement { get; set; } = false;
+    [Parameter]
+    public string TooltipText { get; set; } = string.Empty;
+    [Parameter]
+    public bool ShowTooltip { get; set; } = false;
+    [Parameter]
+    public string Width { get; set; } = "100";
+    [Parameter]
+    public string Height { get; set; } = "20";
+    [Parameter]
+    public string Class { get; set; } = string.Empty;
 
-  protected override void OnInitialized()
-  {
-    base.OnInitialized();
-    ViewModel.PropertyChanged += OnPropertyChanged;
-  }
+    private EndPointID? _endPointId;
+    private void OnConnectionChanged(Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs args)
+    {
+        if (args.op == Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs.CA_OP_CONN_UP)
+        {
+            BorderStatus = BorderStatus.Connected;
+            IsDisabled = false;
+        }
+        else
+        {
+            BorderStatus = BorderStatus.NotConnected;
+            IsDisabled = true;
+        }
+    }
 
-  private bool GetShowUnits()
-  {
-    return (!string.IsNullOrEmpty(ViewModel.Units) && ViewModel.ShowUnits);
-  }
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        //ViewModel.PropertyChanged += OnPropertyChanged;
 
-  private string GetWidth()
-  {
-    return ViewModel.Width != null ? $"{ViewModel.Width}px" : "var(--clf-text-entry-default-width)";
-  }
+    }
 
-  private string GetHeight()
-  {
-    return ViewModel.Height != null ? $"{ViewModel.Height}px" : "var(--clf-text-entry-default-height)";
-  }
+    protected override async Task OnInitializedAsync()
+    {
+        // Create an endpoint from Convergence as an EPICS PV using the EndPointName
+        _endPointId = new EndPointID(Protocols.EPICS_CA, PVName);
+        var epicSettings = new Convergence.IO.EPICS.CA.Settings(
+            datatype: Convergence.IO.EPICS.CA.Settings.GetDBFieldType(PVDataType),
+            elementCount: PVElementCount);
+        var endPointArgs = new EndPointBase<Convergence.IO.EPICS.CA.Settings> { EndPointID = _endPointId, Settings = epicSettings };
+        var connResult = await Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.ConnectAsync(endPointArgs, (Convergence.IO.EPICS.CA.EventCallbackDelegate.ConnectCallback)OnConnectionChanged);
+    }
+
+    private bool GetShowUnits()
+    {
+        return (!string.IsNullOrEmpty(Units) && ShowUnits);
+    }
+
+    private string GetWidth()
+    {
+        return Width != null ? $"{Width}px" : "var(--clf-text-entry-default-width)";
+    }
+
+    private string GetHeight()
+    {
+        return Height != null ? $"{Height}px" : "var(--clf-text-entry-default-height)";
+    }
 
 
-  void IDisposable.Dispose()
-  {
-    ViewModel.PropertyChanged -= OnPropertyChanged;
-  }
-
+    void IDisposable.Dispose()
+    {
+        if (_endPointId != null)
+            // Disconnect to the EndPoint
+            Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.Disconnect(_endPointId);
+    }
 }

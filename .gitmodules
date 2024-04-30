@@ -2,3 +2,7 @@
 	path = CLF.DotNet.ChannelAccess
 	url = git@github.com:TineZata/CLF.DotNet.ChannelAccess.git
 	branch = main
+[submodule "Convergence"]
+	path = Convergence
+	url = git@github.com:TineZata/Convergence.git
+	branch = development

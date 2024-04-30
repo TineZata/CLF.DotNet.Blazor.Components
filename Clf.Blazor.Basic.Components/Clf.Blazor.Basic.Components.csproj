@@ -23,7 +23,7 @@
    
   <ItemGroup>
     <ProjectReference Include="..\Clf.Blazor.Common\Clf.Blazor.Common.csproj" />
-    <ProjectReference Include="..\CLF.DotNet.ChannelAccess\Clf.ChannelAccess\Clf.ChannelAccess.csproj" />
+    <ProjectReference Include="..\Convergence\Convergence\Convergence.csproj" />
   </ItemGroup>
 
 
