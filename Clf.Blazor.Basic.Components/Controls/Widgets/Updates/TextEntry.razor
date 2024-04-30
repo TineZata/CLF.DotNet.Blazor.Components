@@ -5,6 +5,7 @@
 @using Microsoft.AspNetCore.Components.Web
 @using Clf.Blazor.Basic.Components.Controls.Helpers
 @using System.ComponentModel
+@using System.Runtime.InteropServices
 @inherits WidgetBase
 @implements IDisposable
 
@@ -73,6 +74,7 @@
     public string Class { get; set; } = string.Empty;
 
     private EndPointID? _endPointId;
+    private object? _previousValue;
     private void OnConnectionChanged(Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs args)
     {
         if (args.op == Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs.CA_OP_CONN_UP)
@@ -126,5 +128,18 @@
         if (_endPointId != null)
             // Disconnect to the EndPoint
             Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.Disconnect(_endPointId);
+    }
+
+    public async Task OnEnterKeyDownAsync(KeyboardEventArgs e)
+    {
+        //only try to write to the PV if Connected and "Enter" key is pressed
+        if (BorderStatus == BorderStatus.Connected && (e.Code == "Enter" || e.Code == "NumpadEnter"))
+        {
+            // Get ValueToWrite from Text and try convert into the chosen System.Type
+            object valueToWrite = Convert.ChangeType(Text, PVDataType);
+            IntPtr valuePtr = GCHandle.Alloc(valueToWrite, GCHandleType.Pinned).AddrOfPinnedObject();
+            // Write async and await a callback if successful
+            EndPointStatus status = await Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.WriteAsync<Convergence.IO.EPICS.CA.EventCallbackDelegate.WriteCallback>(_endPointId, valuePtr, (_) => { });
+        }
     }
 }
