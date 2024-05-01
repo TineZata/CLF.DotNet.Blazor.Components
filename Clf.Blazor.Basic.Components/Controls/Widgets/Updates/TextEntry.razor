@@ -74,7 +74,7 @@
     public string Class { get; set; } = string.Empty;
 
     private EndPointID? _endPointId;
-    private object? _previousValue;
+    private string _previousValue = "";
     private void OnConnectionChanged(Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs args)
     {
         if (args.op == Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs.CA_OP_CONN_UP)
@@ -92,18 +92,16 @@
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        //ViewModel.PropertyChanged += OnPropertyChanged;
-
     }
 
     protected override async Task OnInitializedAsync()
     {
         // Create an endpoint from Convergence as an EPICS PV using the EndPointName
         _endPointId = new EndPointID(Protocols.EPICS_CA, PVName);
-        var epicSettings = new Convergence.IO.EPICS.CA.Settings(
-            datatype: Convergence.IO.EPICS.CA.Settings.GetDBFieldType(PVDataType),
+        var epicsSettings = new Convergence.IO.EPICS.CA.Settings(
+            datatype: Convergence.IO.EPICS.CA.Helpers.GetDBFieldType(PVDataType),
             elementCount: PVElementCount);
-        var endPointArgs = new EndPointBase<Convergence.IO.EPICS.CA.Settings> { EndPointID = _endPointId, Settings = epicSettings };
+        var endPointArgs = new EndPointBase<Convergence.IO.EPICS.CA.Settings> { EndPointID = _endPointId, Settings = epicsSettings };
         var connResult = await Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.ConnectAsync(endPointArgs, (Convergence.IO.EPICS.CA.EventCallbackDelegate.ConnectCallback)OnConnectionChanged);
     }
 
@@ -137,9 +135,20 @@
         {
             // Get ValueToWrite from Text and try convert into the chosen System.Type
             object valueToWrite = Convert.ChangeType(Text, PVDataType);
-            IntPtr valuePtr = GCHandle.Alloc(valueToWrite, GCHandleType.Pinned).AddrOfPinnedObject();
+            nint valuePtr = GCHandle.Alloc(valueToWrite, GCHandleType.Pinned).AddrOfPinnedObject();
             // Write async and await a callback if successful
-            EndPointStatus status = await Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.WriteAsync<Convergence.IO.EPICS.CA.EventCallbackDelegate.WriteCallback>(_endPointId, valuePtr, (_) => { });
+            EndPointStatus status = await Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.WriteAsync<Convergence.IO.EPICS.CA.EventCallbackDelegate.WriteCallback>(_endPointId, valuePtr, (_) =>
+            {
+                // Check if the value was written successfully by doing a ReadAsync
+                Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.ReadAsync<Convergence.IO.EPICS.CA.EventCallbackDelegate.ReadCallback>(_endPointId, (rbv) =>
+				{
+                    object data = Convergence.IO.EPICS.CA.Helpers.DecodeEventData(rbv);
+                    if (data.ToString() == Text)
+                        _previousValue = Text;
+                        else
+                        Text = _previousValue;
+				});
+            });
         }
     }
 }
