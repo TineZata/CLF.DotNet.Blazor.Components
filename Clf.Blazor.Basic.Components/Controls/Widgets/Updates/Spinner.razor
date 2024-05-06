@@ -103,6 +103,8 @@
         if (_valueEndPoint != null)
         {
             Precision = this.TaskGetPrecision().Result;
+            Maximum = this.TaskGetConnectionToPVHOPR().Result;
+            Minimum = this.TaskGetConnectionToPVLOPR().Result;
         }
     }
 
