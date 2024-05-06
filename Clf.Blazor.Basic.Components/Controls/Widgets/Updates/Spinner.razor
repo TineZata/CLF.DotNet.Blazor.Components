@@ -1,39 +1,39 @@
-﻿@using Clf.Blazor.Basic.Components.Controls.ViewModels.UpdateWidgetViewModels
-@using Clf.Blazor.Basic.Components.Controls.Models
+﻿@using Clf.Blazor.Basic.Components.Controls.Models
 @using Clf.Blazor.Basic.Components.Controls.Widgets.Helpers
 @using Clf.Common.Arithmatic
+@using Convergence
 @using Microsoft.AspNetCore.Components.Web
 @using Clf.Blazor.Basic.Components.Controls.Helpers
 @using Clf.Blazor.Basic.Components.Controls.Widgets.Containers
-@inherits WidgetBase
+@inherits PVWidgetBase
 @implements IDisposable
 
-@if (ViewModel.IsVisible)
+@if (IsVisible)
 {
-  <Alarm BorderStatus="ViewModel.BorderStatus" ContentDisabledTooltip="@(ViewModel.ShowTooltip? ViewModel.TooltipText:string.Empty)" IsContentDisabled="@ViewModel.IsDisabled">
+  <Alarm BorderStatus="@PVBorderStatus" ContentDisabledTooltip="(@ShowTooltip? @TooltipText:string.Empty)" IsContentDisabled="@PVIsDisabled">
     <div class="spinner @Class" style="--spinner-width:@GetWidth(); --spinner-height:@GetHeight();">
-      <Tooltip Text="@(ViewModel.ShowTooltip? ViewModel.TooltipText:string.Empty)">
+      <Tooltip Text="@(@ShowTooltip? @TooltipText:string.Empty)">
         <input @ref="_spinnerInput" class="spinner-input"
                type="number"
-        @bind="StringValue" @bind:event="oninput" @onblur="OnBlur" @onkeydown="OnKeyDown"
-               disabled="@ViewModel.GetDisableStatus()"
+        @bind="StringValue" @bind:event="oninput" @onblur="OnBlur" @onkeydown="OnKeyDownAsync"
+               disabled="@@.GetDisableStatus()"
                enter-pressed="@EnterPressed"
-               min="@ViewModel.Minimum"
-               max="@ViewModel.Maximum"
-               step="@ViewModel.Increment" />
+               min="@Minimum"
+               max="@Maximum"
+               step="@Increment" />
       </Tooltip>
       <div class="spinner-buttons">
         <Tooltip Text="Up">
-          <button disabled="@ViewModel.GetDisableStatus()" class="spinner-button-up" @onclick="StepUp" />
+          <button disabled="@@.GetDisableStatus()" class="spinner-button-up" @onclick="StepUp" />
         </Tooltip>
         <Tooltip Text="Down">
-          <button disabled="@ViewModel.GetDisableStatus()" class="spinner-button-down" @onclick="StepDown" />
+          <button disabled="@@.GetDisableStatus()" class="spinner-button-down" @onclick="StepDown" />
         </Tooltip>
       </div>
       @if (GetShowUnits())
       {
-        <Tooltip Text="@(ViewModel.ShowTooltip? ViewModel.TooltipText:string.Empty)">
-          <span class="clf-units" disabled="@ViewModel.GetDisableStatus()">@ViewModel.Units</span>
+        <Tooltip Text="(@PVShowTooltip?@PVTooltipText:string.Empty)">
+          <span class="clf-units" disabled="@GetDisableStatus()">@Units</span>
         </Tooltip>
       }
     </div>
@@ -42,50 +42,75 @@
 
 @code
 {
-  [Parameter]
-  public SpinnerViewModel ViewModel { get; set; } = new SpinnerViewModel();
+    [Parameter]
+    public double Value { get; set; } = 0;
+    [Parameter]
+    public string Units { get; set; } = string.Empty;
+    [Parameter]
+    public bool ShowUnits { get; set; } = false;
+    [Parameter]
+    public int Precision { get; set; } = -1;
+    [Parameter]
+    public double Minimum { get; set; } = SpinnerStyle.DEFAULT_MIN;
+    [Parameter]
+    public double Maximum { get; set; } = SpinnerStyle.DEFAULT_MAX;
+    [Parameter]
+    public double Increment { get; set; } = SpinnerStyle.DEFAULT_INCREMENT;
+    [Parameter]
+    public bool IsDisabledOnEnter { get; set; } = false;
+    [Parameter]
+    public bool WaitForAcknowledgement { get; set; } = false;
 
-  private ElementReference _spinnerInput;
+    private ElementReference _spinnerInput;
+    private EndPointID? _valueEndPoint;
+    private double _previousValue;
 
-  /* This is for fixing issues of binding and precision
+    /* This is for fixing issues of binding and precision
    * https://www.meziantou.net/bind-an-inputnumber-on-input-with-decimal-numbers-in-blazor.htm
    * We are binding to a wrapper string value
-   */
-  private string _stringValue = "0";
-  public string StringValue
-  {
-    get { return _stringValue; }
-    set
+    */
+    private string _stringValue = "0";
+    public string StringValue
     {
-      _stringValue = value;
-      ViewModel.SetValueFromString(_stringValue);
+        get { return _stringValue; }
+        set
+        {
+            _stringValue = value;
+            SetValueFromString(_stringValue);
+        }
     }
-  }
 
-  private bool _enterPressed = false;
-  public bool EnterPressed
-  {
-    get { return _enterPressed; }
-    set
+    private bool _enterPressed = false;
+    public bool EnterPressed
     {
-      _enterPressed = value;
-      InvokeAsync(StateHasChanged);
+        get { return _enterPressed; }
+        set
+        {
+            _enterPressed = value;
+            InvokeAsync(StateHasChanged);
+        }
     }
-  }
 
-  protected override void OnInitialized()
-  {
-    base.OnInitialized();
-    StringValue = Converters.GetPrecisionText(ViewModel.Value, ViewModel.Precision);
-    ViewModel.PropertyChanged += OnValuePropertyChanged;
-    ViewModel.PropertyChanged += OnPropertyChanged;
-  }
-
-  public void OnValuePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-  {
-    if (e.PropertyName == nameof(ViewModel.Value) || e.PropertyName == nameof(ViewModel.Precision))
+    protected override void OnInitialized()
     {
-      StringValue = Converters.GetPrecisionText(ViewModel.Value, ViewModel.Precision);
+        base.OnInitialized();
+        StringValue = Converters.GetPrecisionText(Value, Precision);
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _valueEndPoint = this.TaskGetConnectionToPVValue().Result;
+        if (_valueEndPoint != null)
+        {
+            Precision = this.TaskGetPrecision().Result;
+        }
+    }
+
+    public void OnValuePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+  {
+    if (e.PropertyName == nameof(Value) || e.PropertyName == nameof(Precision))
+    {
+      StringValue = Converters.GetPrecisionText(Value, Precision);
       // we don't need InvokeAsync(StateHasChanged); in this case
       // becuase the next method that will be triggered is OnPropertyChanged
       // that already has InvokeAsync(StateHasChanged);
@@ -95,60 +120,73 @@
   private void OnBlur(FocusEventArgs e)
   {
     //When the focus is lost
-    StringValue = Converters.GetPrecisionText(ViewModel.Value, ViewModel.Precision);
+    StringValue = Converters.GetPrecisionText(Value, Precision);
   }
 
-  public async Task OnKeyDown(KeyboardEventArgs e)
+  public async Task OnKeyDownAsync(KeyboardEventArgs e)
   {
     if ((e.Code == "Enter" || e.Code == "NumpadEnter"))
     {
       EnterPressed = true;
       await Task.Delay(100);
       //when enter key is pressed
-      StringValue = Converters.GetPrecisionText(ViewModel.Value, ViewModel.Precision);
-      ViewModel.OnEnterKeyDownAsync();
+      StringValue = Converters.GetPrecisionText(Value, Precision);
+      wdwd
       EnterPressed = false;
     }
   }
 
   private string GetWidth()
   {
-    return ViewModel.Width != null ? $"{ViewModel.Width}px" : "var(--clf-spinner-default-width)";
+    return Width != null ? $"{Width}px" : "var(--clf-spinner-default-width)";
   }
 
   private string GetHeight()
   {
-    return ViewModel.Height != null ? $"{ViewModel.Height}px" : "var(--clf-spinner-default-height)";
+    return Height != null ? $"{Height}px" : "var(--clf-spinner-default-height)";
   }
 
   private bool GetShowUnits()
   {
-    return (!string.IsNullOrEmpty(ViewModel.Units) && ViewModel.ShowUnits);
+    return (!string.IsNullOrEmpty(Units) && ShowUnits);
   }
 
   private void StepUp()
   {
-    if (ViewModel.Value < ViewModel.Maximum)
+    if (Value < Maximum)
     {
-      ViewModel.Value += ViewModel.Increment;
+      Value += Increment;
     }
     _spinnerInput.FocusAsync();
   }
 
   private void StepDown()
   {
-    if (ViewModel.Value > ViewModel.Minimum)
+    if (Value > Minimum)
     {
-      ViewModel.Value -= ViewModel.Increment;
+      Value -= Increment;
     }
     _spinnerInput.FocusAsync();
   }
 
   void IDisposable.Dispose()
   {
-    ViewModel.PropertyChanged -= OnValuePropertyChanged;
-    ViewModel.PropertyChanged -= OnPropertyChanged;
-  }
+        if (_valueEndPoint != null)
+            // Disconnect to the EndPoint
+            Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.Disconnect(_valueEndPoint);
+    }
 
-
+    private void OnConnectionChanged(Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs args)
+    {
+        if (args.op == Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs.CA_OP_CONN_UP)
+        {
+            PVBorderStatus = BorderStatus.Connected;
+            PVIsDisabled = false;
+        }
+        else
+        {
+            PVBorderStatus = BorderStatus.NotConnected;
+            PVIsDisabled = true;
+        }
+    }
 }

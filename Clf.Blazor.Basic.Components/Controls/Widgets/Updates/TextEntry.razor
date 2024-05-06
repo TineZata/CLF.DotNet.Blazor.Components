@@ -6,26 +6,26 @@
 @using Clf.Blazor.Basic.Components.Controls.Helpers
 @using System.ComponentModel
 @using System.Runtime.InteropServices
-@inherits WidgetBase
+@inherits PVWidgetBase
 @implements IDisposable
 
 @if (IsVisible)
 {
-  <Alarm BorderStatus="@BorderStatus" ContentDisabledTooltip="@(ShowTooltip? TooltipText:string.Empty)" IsContentDisabled="@IsDisabled">
+  <Alarm BorderStatus="@PVBorderStatus" ContentDisabledTooltip="@(ShowTooltip? TooltipText:string.Empty)" IsContentDisabled="@IsDisabled">
     @if (IsMultiLine)
     {
       <Tooltip Text="@(ShowTooltip? TooltipText:string.Empty)">
         <textarea class="text-area @Class"
             style="--text-input-width:@GetWidth(); --text-input-height:@GetHeight()"
             disabled="@ShowTooltip"
-            @bind="Text" @bind:event="oninput" @onkeydown="@OnEnterKeyDownAsync" />
+            @bind="Text" @bind:event="oninput" @onkeydown="@OnKeyDownAsync" />
       </Tooltip>
     }
     else
     {
       <Tooltip Text="@(ShowTooltip? TooltipText:string.Empty)">
         <div class="text-entry @Class" style="--text-input-width:@GetWidth(); --text-input-height:@GetHeight()">
-            <input class="text-input" type="text" disabled="@ShowTooltip" show-units="@GetShowUnits()" @bind="Text" @bind:event="oninput" @onkeydown="@OnEnterKeyDownAsync" />
+            <input class="text-input" type="text" disabled="@ShowTooltip" show-units="@GetShowUnits()" @bind="Text" @bind:event="oninput" @onkeydown="@OnKeyDownAsync" />
           @if (GetShowUnits())
           {
             <span class="clf-units" disabled="@ShowUnits">@Units</span>
@@ -38,16 +38,6 @@
 
 @code
 {
-    [Parameter]
-    public string PVName { get; set; } = string.Empty;
-    [Parameter]
-    public Type PVDataType { get; set; } = typeof(string);
-    [Parameter]
-    public int PVElementCount { get; set; } = 1;
-    [Parameter]
-    public bool IsDisabled { get; set; } = false;
-    [Parameter]
-    public BorderStatus BorderStatus { get; set; } = BorderStatus.NotConnected;
     [Parameter]
     public string Text { get; set; } = string.Empty;
     [Parameter]
@@ -62,16 +52,6 @@
     public bool IsDisabledOnEnter { get; set; } = false;
     [Parameter]
     public bool WaitForAcknowledgement { get; set; } = false;
-    [Parameter]
-    public string TooltipText { get; set; } = string.Empty;
-    [Parameter]
-    public bool ShowTooltip { get; set; } = false;
-    [Parameter]
-    public string Width { get; set; } = "100";
-    [Parameter]
-    public string Height { get; set; } = "20";
-    [Parameter]
-    public string Class { get; set; } = string.Empty;
 
     private EndPointID? _endPointId;
     private string _previousValue = "";
@@ -79,13 +59,13 @@
     {
         if (args.op == Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs.CA_OP_CONN_UP)
         {
-            BorderStatus = BorderStatus.Connected;
-            IsDisabled = false;
+            PVBorderStatus = BorderStatus.Connected;
+            PVIsDisabled = false;
         }
         else
         {
-            BorderStatus = BorderStatus.NotConnected;
-            IsDisabled = true;
+            PVBorderStatus = BorderStatus.NotConnected;
+            PVIsDisabled = true;
         }
     }
 
@@ -128,10 +108,10 @@
             Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.Disconnect(_endPointId);
     }
 
-    public async Task OnEnterKeyDownAsync(KeyboardEventArgs e)
+    public async Task OnKeyDownAsync(KeyboardEventArgs e)
     {
         //only try to write to the PV if Connected and "Enter" key is pressed
-        if (BorderStatus == BorderStatus.Connected && (e.Code == "Enter" || e.Code == "NumpadEnter"))
+        if (PVBorderStatus == BorderStatus.Connected && (e.Code == "Enter" || e.Code == "NumpadEnter") && _endPointId != null)
         {
             // Get ValueToWrite from Text and try convert into the chosen System.Type
             object valueToWrite = Convert.ChangeType(Text, PVDataType);
