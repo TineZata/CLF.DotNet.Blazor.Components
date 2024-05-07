@@ -10,185 +10,211 @@
 
 @if (IsVisible)
 {
-  <Alarm BorderStatus="@PVBorderStatus" ContentDisabledTooltip="(@ShowTooltip? @TooltipText:string.Empty)" IsContentDisabled="@PVIsDisabled">
-    <div class="spinner @Class" style="--spinner-width:@GetWidth(); --spinner-height:@GetHeight();">
-      <Tooltip Text="@(@ShowTooltip? @TooltipText:string.Empty)">
-        <input @ref="_spinnerInput" class="spinner-input"
-               type="number"
-        @bind="StringValue" @bind:event="oninput" @onblur="OnBlur" @onkeydown="OnKeyDownAsync"
-               disabled="@@.GetDisableStatus()"
-               enter-pressed="@EnterPressed"
-               min="@Minimum"
-               max="@Maximum"
-               step="@Increment" />
-      </Tooltip>
-      <div class="spinner-buttons">
-        <Tooltip Text="Up">
-          <button disabled="@@.GetDisableStatus()" class="spinner-button-up" @onclick="StepUp" />
-        </Tooltip>
-        <Tooltip Text="Down">
-          <button disabled="@@.GetDisableStatus()" class="spinner-button-down" @onclick="StepDown" />
-        </Tooltip>
-      </div>
-      @if (GetShowUnits())
-      {
-        <Tooltip Text="(@PVShowTooltip?@PVTooltipText:string.Empty)">
-          <span class="clf-units" disabled="@GetDisableStatus()">@Units</span>
-        </Tooltip>
-      }
-    </div>
-  </Alarm>
+	<Alarm BorderStatus="@PVBorderStatus" ContentDisabledTooltip="@(ShowTooltip?TooltipText:string.Empty)" IsContentDisabled="@PVIsDisabled">
+		<div class="spinner @Class" style="--spinner-width:@GetWidth(); --spinner-height:@GetHeight();">
+			<Tooltip Text="@(ShowTooltip? @TooltipText:string.Empty)">
+				<input @ref="_spinnerInput" class="spinner-input"
+					   type="number"
+					   @bind="StringValue" @bind:event="oninput" @onblur="OnBlur" @onkeydown="OnKeyDownAsync"
+					   disabled="@PVIsDisabled"
+					   enter-pressed="@EnterPressed"
+					   min="@Minimum"
+					   max="@Maximum"
+					   step="@Increment" />
+			</Tooltip>
+			<div class="spinner-buttons">
+				<Tooltip Text="Up">
+					<button disabled="@PVIsDisabled" class="spinner-button-up" @onclick="StepUp" />
+				</Tooltip>
+				<Tooltip Text="Down">
+					<button disabled="@PVIsDisabled" class="spinner-button-down" @onclick="StepDown" />
+				</Tooltip>
+			</div>
+			@if (GetShowUnits())
+			{
+				<Tooltip Text="@(ShowTooltip?TooltipText:string.Empty)">
+					<span class="clf-units" disabled="@PVIsDisabled">@Units</span>
+				</Tooltip>
+			}
+		</div>
+	</Alarm>
 }
 
 @code
 {
-    [Parameter]
-    public double Value { get; set; } = 0;
-    [Parameter]
-    public string Units { get; set; } = string.Empty;
-    [Parameter]
-    public bool ShowUnits { get; set; } = false;
-    [Parameter]
-    public int Precision { get; set; } = -1;
-    [Parameter]
-    public double Minimum { get; set; } = SpinnerStyle.DEFAULT_MIN;
-    [Parameter]
-    public double Maximum { get; set; } = SpinnerStyle.DEFAULT_MAX;
-    [Parameter]
-    public double Increment { get; set; } = SpinnerStyle.DEFAULT_INCREMENT;
-    [Parameter]
-    public bool IsDisabledOnEnter { get; set; } = false;
-    [Parameter]
-    public bool WaitForAcknowledgement { get; set; } = false;
+	private double _value = 0;
+	public double Value
+	{
+		get { return _value; }
+		set
+		{
+			_value = value;
+			var args = new KeyboardEventArgs();
+			args.Code = "Enter";
+			OnKeyDownAsync(args);
+		}
+	}
+	[Parameter]
+	public string Units { get; set; } = string.Empty;
+	[Parameter]
+	public bool ShowUnits { get; set; } = false;
+	[Parameter]
+	public int Precision { get; set; } = -1;
+	[Parameter]
+	public double Minimum { get; set; } = SpinnerStyle.DEFAULT_MIN;
+	[Parameter]
+	public double Maximum { get; set; } = SpinnerStyle.DEFAULT_MAX;
+	[Parameter]
+	public double Increment { get; set; } = SpinnerStyle.DEFAULT_INCREMENT;
+	[Parameter]
+	public bool IsDisabledOnEnter { get; set; } = false;
+	[Parameter]
+	public bool WaitForAcknowledgement { get; set; } = false;
 
-    private ElementReference _spinnerInput;
-    private EndPointID? _valueEndPoint;
-    private double _previousValue;
+	private ElementReference _spinnerInput;
+	private EndPointID? _endPointId;
+	private double _previousValue;
 
-    /* This is for fixing issues of binding and precision
-   * https://www.meziantou.net/bind-an-inputnumber-on-input-with-decimal-numbers-in-blazor.htm
-   * We are binding to a wrapper string value
-    */
-    private string _stringValue = "0";
-    public string StringValue
-    {
-        get { return _stringValue; }
-        set
-        {
-            _stringValue = value;
-            SetValueFromString(_stringValue);
-        }
-    }
+	/* This is for fixing issues of binding and precision
+			* https://www.meziantou.net/bind-an-inputnumber-on-input-with-decimal-numbers-in-blazor.htm
+			* We are binding to a wrapper string value
+	*/
+	private string _stringValue = "0";
+	public string StringValue
+	{
+		get { return _stringValue; }
+		set
+		{
+			_stringValue = value;
+			SetValueFromString(_stringValue);
+		}
+	}
 
-    private bool _enterPressed = false;
-    public bool EnterPressed
-    {
-        get { return _enterPressed; }
-        set
-        {
-            _enterPressed = value;
-            InvokeAsync(StateHasChanged);
-        }
-    }
+	private bool _enterPressed = false;
+	public bool EnterPressed
+	{
+		get { return _enterPressed; }
+		set
+		{
+			_enterPressed = value;
+			InvokeAsync(StateHasChanged);
+		}
+	}
 
-    protected override void OnInitialized()
-    {
-        base.OnInitialized();
-        StringValue = Converters.GetPrecisionText(Value, Precision);
-    }
+	protected override void OnInitialized()
+	{
+		base.OnInitialized();
+		StringValue = Converters.GetPrecisionText(Value, Precision);
+	}
 
-    protected override async Task OnInitializedAsync()
-    {
-        _valueEndPoint = this.TaskGetConnectionToPVValue().Result;
-        if (_valueEndPoint != null)
-        {
-            Precision = this.TaskGetPrecision().Result;
-            Maximum = this.TaskGetConnectionToPVHOPR().Result;
-            Minimum = this.TaskGetConnectionToPVLOPR().Result;
-        }
-    }
 
-    public void OnValuePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-  {
-    if (e.PropertyName == nameof(Value) || e.PropertyName == nameof(Precision))
-    {
-      StringValue = Converters.GetPrecisionText(Value, Precision);
-      // we don't need InvokeAsync(StateHasChanged); in this case
-      // becuase the next method that will be triggered is OnPropertyChanged
-      // that already has InvokeAsync(StateHasChanged);
-    }
-  }
+	private void OnConnectionChanged(Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs args)
+	{
+		if (args.op == Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs.CA_OP_CONN_UP)
+		{
+			PVBorderStatus = BorderStatus.Connected;
+			PVIsDisabled = false;
+		}
+		else
+		{
+			PVBorderStatus = BorderStatus.NotConnected;
+			PVIsDisabled = true;
+		}
+	}
 
-  private void OnBlur(FocusEventArgs e)
-  {
-    //When the focus is lost
-    StringValue = Converters.GetPrecisionText(Value, Precision);
-  }
+	protected override async Task OnInitializedAsync()
+	{
+		if (PVName != string.Empty)
+		{
+			this.ConnectionChangedEvent = OnConnectionChanged;
+			_endPointId = this.TaskConnectPV().Result;
+			if (_endPointId != null)
+			{
+				Precision = this.TaskGetPREC().Result;
+				Maximum = this.TaskHOPR().Result;
+				Minimum = this.TaskLOPR().Result;
+				if (ShowUnits) Units = this.TaskGetUnits().Result;
+			}
+		}
+	}
 
-  public async Task OnKeyDownAsync(KeyboardEventArgs e)
-  {
-    if ((e.Code == "Enter" || e.Code == "NumpadEnter"))
-    {
-      EnterPressed = true;
-      await Task.Delay(100);
-      //when enter key is pressed
-      StringValue = Converters.GetPrecisionText(Value, Precision);
-      wdwd
-      EnterPressed = false;
-    }
-  }
+	public void OnValuePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+	{
+		if (e.PropertyName == nameof(Value) || e.PropertyName == nameof(Precision))
+		{
+			StringValue = Converters.GetPrecisionText(Value, Precision);
+			// we don't need InvokeAsync(StateHasChanged); in this case
+			// becuase the next method that will be triggered is OnPropertyChanged
+			// that already has InvokeAsync(StateHasChanged);
+		}
+	}
 
-  private string GetWidth()
-  {
-    return Width != null ? $"{Width}px" : "var(--clf-spinner-default-width)";
-  }
+	private void OnBlur(FocusEventArgs e)
+	{
+		//When the focus is lost
+		StringValue = Converters.GetPrecisionText(Value, Precision);
+	}
 
-  private string GetHeight()
-  {
-    return Height != null ? $"{Height}px" : "var(--clf-spinner-default-height)";
-  }
+	public async Task OnKeyDownAsync(KeyboardEventArgs e)
+	{
+		if (_endPointId != null && (e.Code == "Enter" || e.Code == "NumpadEnter"))
+		{
+			await this.TaskPutPV(_endPointId, Value);
+			StringValue = Converters.GetPrecisionText(Value, Precision);
+		}
+	}
 
-  private bool GetShowUnits()
-  {
-    return (!string.IsNullOrEmpty(Units) && ShowUnits);
-  }
+	private string GetWidth()
+	{
+		return Width != null ? $"{Width}px" : "var(--clf-spinner-default-width)";
+	}
 
-  private void StepUp()
-  {
-    if (Value < Maximum)
-    {
-      Value += Increment;
-    }
-    _spinnerInput.FocusAsync();
-  }
+	private string GetHeight()
+	{
+		return Height != null ? $"{Height}px" : "var(--clf-spinner-default-height)";
+	}
 
-  private void StepDown()
-  {
-    if (Value > Minimum)
-    {
-      Value -= Increment;
-    }
-    _spinnerInput.FocusAsync();
-  }
+	private bool GetShowUnits()
+	{
+		return (!string.IsNullOrEmpty(Units) && ShowUnits);
+	}
 
-  void IDisposable.Dispose()
-  {
-        if (_valueEndPoint != null)
-            // Disconnect to the EndPoint
-            Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.Disconnect(_valueEndPoint);
-    }
+	private void StepUp()
+	{
+		if (Value < Maximum)
+		{
+			Value += Increment;
+		}
+		_spinnerInput.FocusAsync();
+	}
 
-    private void OnConnectionChanged(Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs args)
-    {
-        if (args.op == Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs.CA_OP_CONN_UP)
-        {
-            PVBorderStatus = BorderStatus.Connected;
-            PVIsDisabled = false;
-        }
-        else
-        {
-            PVBorderStatus = BorderStatus.NotConnected;
-            PVIsDisabled = true;
-        }
-    }
+	private void StepDown()
+	{
+		if (Value > Minimum)
+		{
+			Value -= Increment;
+		}
+		_spinnerInput.FocusAsync();
+	}
+
+	public void SetValueFromString(string stringValue)
+	{
+		var parsedValue = Converters.GetPrecisionDoubleFromString(stringValue, Precision);
+		if (double.IsNaN(parsedValue) == false)
+		{
+			if (parsedValue < Minimum)
+				Value = Minimum;
+			else if (parsedValue > Maximum)
+				Value = Maximum;
+			else
+				Value = parsedValue;
+		}
+	}
+
+	void IDisposable.Dispose()
+	{
+		if (_endPointId != null)
+			// Disconnect to the EndPoint
+			Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.Disconnect(_endPointId);
+	}
 }
