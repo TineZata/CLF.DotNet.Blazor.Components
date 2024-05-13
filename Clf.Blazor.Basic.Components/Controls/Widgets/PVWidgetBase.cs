@@ -45,25 +45,6 @@ namespace Clf.Blazor.Basic.Components.Controls.Widgets
 			{
 				return null;
 			}
-
-		}
-
-		public async Task<EndPointStatus> TaskPutPV(EndPointID endPointID, object value)
-		{
-			if (endPointID != null && value != null)
-			{
-				// Get ValueToWrite from Text and try convert into the chosen System.Type
-				object valueToWrite = Convert.ChangeType(value, PVDataType);
-				nint valuePtr = GCHandle.Alloc(valueToWrite, GCHandleType.Pinned).AddrOfPinnedObject();
-				// Write async and I dont really care about the callback
-				EndPointStatus status = await Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.WriteAsync
-					<Convergence.IO.EPICS.CA.EventCallbackDelegate.WriteCallback>(endPointID, valuePtr, NullWriteCallback);
-				return status;
-			}
-			else
-			{
-				return EndPointStatus.Disconnected;
-			}
 		}
 
 		/// <summary>
@@ -72,22 +53,10 @@ namespace Clf.Blazor.Basic.Components.Controls.Widgets
 		/// <returns></returns>
 		public async Task<int> TaskGetPREC()
 		{
-			int precision = 0;
-			var endpoint = new EndPointID(Protocols.EPICS_CA, PVName + ".PREC");
-			var epicsSettings = new Convergence.IO.EPICS.CA.Settings(
-				datatype: Convergence.IO.EPICS.CA.DbFieldType.DBF_SHORT_i16,
-				elementCount: 1);
-			var endPointArgs = new EndPointBase<Convergence.IO.EPICS.CA.Settings> { EndPointID = endpoint, Settings = epicsSettings };
-			var connResult = await Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.ConnectAsync(endPointArgs, NullConnCallback);
-			if (connResult == EndPointStatus.Okay)
+			var result = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName + ".PREC", typeof(short));
+			if (result.Status == EndPointStatus.Okay && result.Value != null)
 			{
-				await Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.ReadAsync<Convergence.IO.EPICS.CA.EventCallbackDelegate.ReadCallback>(endpoint, (rbv) =>
-				{
-					precision = (int)Convergence.IO.EPICS.CA.Helpers.DecodeEventData(rbv);
-				});
-				// Disconnect the channel
-				Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.Disconnect(endpoint);
-				return precision;
+				return (int)result.Value;
 			}
 			else
 			{
@@ -101,22 +70,10 @@ namespace Clf.Blazor.Basic.Components.Controls.Widgets
 		/// <returns></returns>
 		public async Task<float> TaskGetHIHI()
 		{
-			float hihi = 0;
-			var endpoint = new EndPointID(Protocols.EPICS_CA, PVName + ".HIHI");
-			var epicsSettings = new Convergence.IO.EPICS.CA.Settings(
-				datatype: Convergence.IO.EPICS.CA.DbFieldType.DBF_FLOAT_f32,
-				elementCount: 1);
-			var endPointArgs = new EndPointBase<Convergence.IO.EPICS.CA.Settings> { EndPointID = endpoint, Settings = epicsSettings };
-			var connResult = await Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.ConnectAsync(endPointArgs, NullConnCallback);
-			if (connResult == EndPointStatus.Okay)
+			var result = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName + ".HIHI", typeof(float));
+			if (result.Status == EndPointStatus.Okay && result.Value != null)
 			{
-				await Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.ReadAsync<Convergence.IO.EPICS.CA.EventCallbackDelegate.ReadCallback>(endpoint, (rbv) =>
-				{
-					hihi = (float)Convergence.IO.EPICS.CA.Helpers.DecodeEventData(rbv);
-				});
-				// Disconnect the channel
-				Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.Disconnect(endpoint);
-				return hihi;
+				return (float)result.Value;
 			}
 			else
 			{
@@ -130,22 +87,10 @@ namespace Clf.Blazor.Basic.Components.Controls.Widgets
 		/// <returns></returns>
 		public async Task<float> TaskGetHIGH()
 		{
-			float high = 0;
-			var endpoint = new EndPointID(Protocols.EPICS_CA, PVName + ".HIGH");
-			var epicsSettings = new Convergence.IO.EPICS.CA.Settings(
-				datatype: Convergence.IO.EPICS.CA.DbFieldType.DBF_FLOAT_f32,
-				elementCount: 1);
-			var endPointArgs = new EndPointBase<Convergence.IO.EPICS.CA.Settings> { EndPointID = endpoint, Settings = epicsSettings };
-			var connResult = await Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.ConnectAsync(endPointArgs, NullConnCallback);
-			if (connResult == EndPointStatus.Okay)
+			var result = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName + ".HIGH", typeof(float));
+			if (result.Status == EndPointStatus.Okay && result.Value != null)
 			{
-				await Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.ReadAsync<Convergence.IO.EPICS.CA.EventCallbackDelegate.ReadCallback>(endpoint, (rbv) =>
-				{
-					high = (float)Convergence.IO.EPICS.CA.Helpers.DecodeEventData(rbv);
-				});
-				// Disconnect the channel
-				Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.Disconnect(endpoint);
-				return high;
+				return (float)result.Value;
 			}
 			else
 			{
@@ -159,22 +104,10 @@ namespace Clf.Blazor.Basic.Components.Controls.Widgets
 		/// <returns></returns>
 		public async Task<float> TaskGetLOLO()
 		{
-			float lolo = 0;
-			var endpoint = new EndPointID(Protocols.EPICS_CA, PVName + ".LOLO");
-			var epicsSettings = new Convergence.IO.EPICS.CA.Settings(
-				datatype: Convergence.IO.EPICS.CA.DbFieldType.DBF_FLOAT_f32,
-				elementCount: 1);
-			var endPointArgs = new EndPointBase<Convergence.IO.EPICS.CA.Settings> { EndPointID = endpoint, Settings = epicsSettings };
-			var connResult = await Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.ConnectAsync(endPointArgs, NullConnCallback);
-			if (connResult == EndPointStatus.Okay)
+			var result = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName + ".LOLO", typeof(float));
+			if (result.Status == EndPointStatus.Okay && result.Value != null)
 			{
-				await Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.ReadAsync<Convergence.IO.EPICS.CA.EventCallbackDelegate.ReadCallback>(endpoint, (rbv) =>
-				{
-					lolo = (float)Convergence.IO.EPICS.CA.Helpers.DecodeEventData(rbv);
-				});
-				// Disconnect the channel
-				Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.Disconnect(endpoint);
-				return lolo;
+				return (float)result.Value;
 			}
 			else
 			{
@@ -188,22 +121,10 @@ namespace Clf.Blazor.Basic.Components.Controls.Widgets
 		/// <returns></returns>
 		public async Task<float> TaskGetLOW()
 		{
-			float low = 0;
-			var endpoint = new EndPointID(Protocols.EPICS_CA, PVName + ".LOW");
-			var epicsSettings = new Convergence.IO.EPICS.CA.Settings(
-				datatype: Convergence.IO.EPICS.CA.DbFieldType.DBF_FLOAT_f32,
-				elementCount: 1);
-			var endPointArgs = new EndPointBase<Convergence.IO.EPICS.CA.Settings> { EndPointID = endpoint, Settings = epicsSettings };
-			var connResult = await Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.ConnectAsync(endPointArgs, NullConnCallback);
-			if (connResult == EndPointStatus.Okay)
+			var result = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName + ".LOW", typeof(float));
+			if (result.Status == EndPointStatus.Okay && result.Value != null)
 			{
-				await Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.ReadAsync<Convergence.IO.EPICS.CA.EventCallbackDelegate.ReadCallback>(endpoint, (rbv) =>
-				{
-					low = (float)Convergence.IO.EPICS.CA.Helpers.DecodeEventData(rbv);
-				});
-				// Disconnect the channel
-				Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.Disconnect(endpoint);
-				return low;
+				return (float)result.Value;
 			}
 			else
 			{
@@ -217,22 +138,10 @@ namespace Clf.Blazor.Basic.Components.Controls.Widgets
 		/// <returns></returns>
 		public async Task<float> TaskHOPR()
 		{
-			float hopr = 0;
-			var endpoint = new EndPointID(Protocols.EPICS_CA, PVName + ".HOPR");
-			var epicsSettings = new Convergence.IO.EPICS.CA.Settings(
-				datatype: Convergence.IO.EPICS.CA.DbFieldType.DBF_FLOAT_f32,
-				elementCount: 1);
-			var endPointArgs = new EndPointBase<Convergence.IO.EPICS.CA.Settings> { EndPointID = endpoint, Settings = epicsSettings };
-			var connResult = await Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.ConnectAsync(endPointArgs, NullConnCallback);
-			if (connResult == EndPointStatus.Okay)
+			var result = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName + ".HOPR", typeof(float));
+			if (result.Status == EndPointStatus.Okay && result.Value != null)
 			{
-				await Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.ReadAsync<Convergence.IO.EPICS.CA.EventCallbackDelegate.ReadCallback>(endpoint, (rbv) =>
-				{
-					hopr = (float)Convergence.IO.EPICS.CA.Helpers.DecodeEventData(rbv);
-				});
-				// Disconnect the channel
-				Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.Disconnect(endpoint);
-				return hopr;
+				return (float)result.Value;
 			}
 			else
 			{
@@ -246,22 +155,10 @@ namespace Clf.Blazor.Basic.Components.Controls.Widgets
 		/// <returns></returns>
 		public async Task<float> TaskLOPR()
 		{
-			float lopr = 0;
-			var endpoint = new EndPointID(Protocols.EPICS_CA, PVName + ".HOPR");
-			var epicsSettings = new Convergence.IO.EPICS.CA.Settings(
-				datatype: Convergence.IO.EPICS.CA.DbFieldType.DBF_FLOAT_f32,
-				elementCount: 1);
-			var endPointArgs = new EndPointBase<Convergence.IO.EPICS.CA.Settings> { EndPointID = endpoint, Settings = epicsSettings };
-			var connResult = await Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.ConnectAsync(endPointArgs, NullConnCallback);
-			if (connResult == EndPointStatus.Okay)
+			var result = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName + ".LOPR", typeof(float));
+			if (result.Status == EndPointStatus.Okay && result.Value != null)
 			{
-				await Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.ReadAsync<Convergence.IO.EPICS.CA.EventCallbackDelegate.ReadCallback>(endpoint, (rbv) =>
-				{
-					lopr = (float)Convergence.IO.EPICS.CA.Helpers.DecodeEventData(rbv);
-				});
-				// Disconnect the channel
-				Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.Disconnect(endpoint);
-				return lopr;
+				return (float)result.Value;
 			}
 			else
 			{
@@ -271,26 +168,14 @@ namespace Clf.Blazor.Basic.Components.Controls.Widgets
 
 		public async Task<string> TaskGetUnits()
 		{
-			string units = string.Empty;
-			var endpoint = new EndPointID(Protocols.EPICS_CA, PVName + ".EGU");
-			var epicsSettings = new Convergence.IO.EPICS.CA.Settings(
-								datatype: Convergence.IO.EPICS.CA.DbFieldType.DBF_STRING_s39,
-								elementCount: 1);
-			var endPointArgs = new EndPointBase<Convergence.IO.EPICS.CA.Settings> { EndPointID = endpoint, Settings = epicsSettings };
-			var connResult = await Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.ConnectAsync(endPointArgs, NullConnCallback);
-			if (connResult == EndPointStatus.Okay)
+			var result = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName + ".EGU");
+			if (result.Status == EndPointStatus.Okay && result.Value != null)
 			{
-				await Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.ReadAsync<Convergence.IO.EPICS.CA.EventCallbackDelegate.ReadCallback>(endpoint, (rbv) =>
-				{
-					units = (string)Convergence.IO.EPICS.CA.Helpers.DecodeEventData(rbv);
-				});
-				// Disconnect the channel
-				Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.Disconnect(endpoint);
-				return units;
+				return (string)result.Value;
 			}
 			else
 			{
-				return string.Empty;
+				return "";
 			}
 		}
 

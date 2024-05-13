@@ -159,8 +159,9 @@
 	{
 		if (_endPointId != null && (e.Code == "Enter" || e.Code == "NumpadEnter"))
 		{
-			await this.TaskPutPV(_endPointId, Value);
-			StringValue = Converters.GetPrecisionText(Value, Precision);
+			var result = await Convergence.IO.EPICS.CA.Wrapper.CaPutAsync(PVName, Value, typeof(double));
+			if (result == EndPointStatus.Okay)
+				StringValue = Converters.GetPrecisionText(Value, Precision);
 		}
 	}
 
