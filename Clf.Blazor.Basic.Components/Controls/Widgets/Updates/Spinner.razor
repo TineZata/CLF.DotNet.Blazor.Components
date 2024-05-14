@@ -1,4 +1,5 @@
 ﻿@using Clf.Blazor.Basic.Components.Controls.Models
+@using Clf.Blazor.Basic.Components.Controls.Widgets
 @using Clf.Blazor.Basic.Components.Controls.Widgets.Helpers
 @using Clf.Common.Arithmatic
 @using Convergence
@@ -72,7 +73,6 @@
 	public bool WaitForAcknowledgement { get; set; } = false;
 
 	private ElementReference _spinnerInput;
-	private EndPointID? _endPointId;
 	private double _previousValue;
 
 	/* This is for fixing issues of binding and precision
@@ -126,9 +126,8 @@
 	{
 		if (PVName != string.Empty)
 		{
-			this.ConnectionChangedEvent = OnConnectionChanged;
-			_endPointId = this.TaskConnectPV().Result;
-			if (_endPointId != null)
+			this.ConnectionCallback = OnConnectionChanged;
+			if (this.TaskConnect().Result == EndPointStatus.Okay)
 			{
 				Precision = this.TaskGetPREC().Result;
 				Maximum = this.TaskHOPR().Result;
@@ -143,9 +142,6 @@
 		if (e.PropertyName == nameof(Value) || e.PropertyName == nameof(Precision))
 		{
 			StringValue = Converters.GetPrecisionText(Value, Precision);
-			// we don't need InvokeAsync(StateHasChanged); in this case
-			// becuase the next method that will be triggered is OnPropertyChanged
-			// that already has InvokeAsync(StateHasChanged);
 		}
 	}
 
