@@ -124,6 +124,9 @@
 
 	protected override async Task OnInitializedAsync()
 	{
+		this.Width = this.Width == 0 ? SpinnerStyle.DEFAULT_WIDTH : this.Width;
+		this.Height = this.Height == 0 ? SpinnerStyle.DEFAULT_HEIGHT : this.Height;
+
 		if (PVName != string.Empty)
 		{
 			this.ConnectionCallback = OnConnectionChanged;
@@ -153,7 +156,7 @@
 
 	public async Task OnKeyDownAsync(KeyboardEventArgs e)
 	{
-		if (_endPointId != null && (e.Code == "Enter" || e.Code == "NumpadEnter"))
+		if (e.Code == "Enter" || e.Code == "NumpadEnter")
 		{
 			var result = await Convergence.IO.EPICS.CA.Wrapper.CaPutAsync(PVName, Value, typeof(double));
 			if (result == EndPointStatus.Okay)
@@ -163,12 +166,12 @@
 
 	private string GetWidth()
 	{
-		return Width != null ? $"{Width}px" : "var(--clf-spinner-default-width)";
+		return Width != 0 ? $"{Width}px" : "var(--clf-spinner-default-width)";
 	}
 
 	private string GetHeight()
 	{
-		return Height != null ? $"{Height}px" : "var(--clf-spinner-default-height)";
+		return Height != 0 ? $"{Height}px" : "var(--clf-spinner-default-height)";
 	}
 
 	private bool GetShowUnits()
@@ -210,8 +213,6 @@
 
 	void IDisposable.Dispose()
 	{
-		if (_endPointId != null)
-			// Disconnect to the EndPoint
-			Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.Disconnect(_endPointId);
+		Convergence.IO.EPICS.CA.Wrapper.Disconnect(PVName);
 	}
 }
