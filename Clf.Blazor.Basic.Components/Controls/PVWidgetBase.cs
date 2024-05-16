@@ -25,11 +25,26 @@ namespace Clf.Blazor.Basic.Components.Controls
         [Parameter]
         public BorderStatus PVBorderStatus { get; set; } = BorderStatus.NotConnected;
 
-        public Convergence.IO.EPICS.CA.EventCallbackDelegate.ConnectCallback? ConnectionCallback { get; set; } = NullConnCallback;
+		public void PVConnectionChanged(Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs args)
+		{
+			if (args.op == Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs.CA_OP_CONN_UP)
+			{
+				PVBorderStatus = BorderStatus.Connected;
+				PVIsDisabled = false;
+			}
+			else
+			{
+				PVBorderStatus = BorderStatus.NotConnected;
+				PVIsDisabled = true;
+			}
+		}
 
-        public async Task<EndPointStatus> TaskConnect()
+		public async Task<EndPointStatus> TaskConnect(bool monitorConnectionChange)
         {
-            return await Wrapper.ConnectAsync(PVName, PVDataType, PVElementCount, ConnectionCallback);
+            if (monitorConnectionChange)
+                return await Wrapper.ConnectAsync(PVName, PVDataType, PVElementCount, PVConnectionChanged);
+            else
+                return await Wrapper.ConnectAsync(PVName, PVDataType, PVElementCount);
         }
 
         /// <summary>
