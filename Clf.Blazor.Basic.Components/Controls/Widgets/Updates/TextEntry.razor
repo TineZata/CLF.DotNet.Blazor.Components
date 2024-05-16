@@ -1,17 +1,17 @@
-﻿@    using Convergence
-@    using Clf.Blazor.Basic.Components.Controls.Models
-@    using Clf.Blazor.Basic.Components.Controls.Widgets.Containers
-@    using Clf.Blazor.Basic.Components.Controls.Widgets.Helpers
-@    using Microsoft.AspNetCore.Components.Web
-@    using Clf.Blazor.Basic.Components.Controls.Helpers
-@    using System.ComponentModel
-@    using System.Runtime.InteropServices
+﻿@using Convergence
+@using Clf.Blazor.Basic.Components.Controls.Models
+@using Clf.Blazor.Basic.Components.Controls.Widgets.Containers
+@using Clf.Blazor.Basic.Components.Controls.Widgets.Helpers
+@using Microsoft.AspNetCore.Components.Web
+@using Clf.Blazor.Basic.Components.Controls.Helpers
+@using System.ComponentModel
+@using System.Runtime.InteropServices
 @inherits PVWidgetBase
 @implements IDisposable
 
 @if (IsVisible)
 {
-  <Alarm BorderStatus="@PVBorderStatus" ContentDisabledTooltip="@(ShowTooltip? TooltipText:string.Empty)" IsContentDisabled="@IsDisabled">
+  <Alarm BorderStatus="@PVBorderStatus" ContentDisabledTooltip="@(ShowTooltip? TooltipText:string.Empty)" IsContentDisabled="@PVIsDisabled">
     @if (IsMultiLine)
     {
       <Tooltip Text="@(ShowTooltip? TooltipText:string.Empty)">
@@ -53,7 +53,6 @@
     [Parameter]
     public bool WaitForAcknowledgement { get; set; } = false;
 
-    private EndPointID? _endPointId;
     private string _previousValue = "";
     private void OnConnectionChanged(Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs args)
     {
@@ -76,13 +75,18 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // Create an endpoint from Convergence as an EPICS PV using the EndPointName
-        _endPointId = new EndPointID(Protocols.EPICS_CA, PVName);
-        var epicsSettings = new Convergence.IO.EPICS.CA.Settings(
-            datatype: Convergence.IO.EPICS.CA.Helpers.GetDBFieldType(PVDataType),
-            elementCount: PVElementCount);
-        var endPointArgs = new EndPointBase<Convergence.IO.EPICS.CA.Settings> { EndPointID = _endPointId, Settings = epicsSettings };
-        var connResult = await Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.ConnectAsync(endPointArgs, (Convergence.IO.EPICS.CA.EventCallbackDelegate.ConnectCallback)OnConnectionChanged);
+        if (PVName != string.Empty)
+        {
+            this.Width = this.Width == 0 ? TextEntryStyle.DEFAULT_WIDTH : this.Width;
+            this.Height = this.Height == 0 ? TextEntryStyle.DEFAULT_HEIGHT : this.Height;
+            this.ConnectionCallback = OnConnectionChanged;
+            if (this.TaskConnect().Result == EndPointStatus.Okay)
+			{
+				Precision = this.TaskGetPREC().Result;
+				if (ShowUnits) Units = this.TaskGetUnits().Result;
+			}
+		}
+        
     }
 
     private bool GetShowUnits()
@@ -92,43 +96,33 @@
 
     private string GetWidth()
     {
-        return Width != null ? $"{Width}px" : "var(--clf-text-entry-default-width)";
+        return Width != 0 ? $"{Width}px" : "var(--clf-text-entry-default-width)";
     }
 
     private string GetHeight()
     {
-        return Height != null ? $"{Height}px" : "var(--clf-text-entry-default-height)";
+        return Height != 0 ? $"{Height}px" : "var(--clf-text-entry-default-height)";
     }
 
 
     void IDisposable.Dispose()
     {
-        if (_endPointId != null)
-            // Disconnect to the EndPoint
-            Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.Disconnect(_endPointId);
+        Convergence.IO.EPICS.CA.Wrapper.Disconnect(PVName);
     }
 
     public async Task OnKeyDownAsync(KeyboardEventArgs e)
     {
         //only try to write to the PV if Connected and "Enter" key is pressed
-        if (PVBorderStatus == BorderStatus.Connected && (e.Code == "Enter" || e.Code == "NumpadEnter") && _endPointId != null)
+        if (PVBorderStatus == BorderStatus.Connected && (e.Code == "Enter" || e.Code == "NumpadEnter"))
         {
-            // Get ValueToWrite from Text and try convert into the chosen System.Type
-            object valueToWrite = Convert.ChangeType(Text, PVDataType);
-            nint valuePtr = GCHandle.Alloc(valueToWrite, GCHandleType.Pinned).AddrOfPinnedObject();
-            // Write async and await a callback if successful
-            EndPointStatus status = await Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.WriteAsync<Convergence.IO.EPICS.CA.EventCallbackDelegate.WriteCallback>(_endPointId, valuePtr, (_) =>
-            {
-                // Check if the value was written successfully by doing a ReadAsync
-                Convergence.IO.EPICS.CA.ConvergeOnEPICSChannelAccess.Hub.ReadAsync<Convergence.IO.EPICS.CA.EventCallbackDelegate.ReadCallback>(_endPointId, (rbv) =>
-				{
-                    object data = Convergence.IO.EPICS.CA.Helpers.DecodeEventData(rbv);
-                    if (data.ToString() == Text)
-                        _previousValue = Text;
-                        else
-                        Text = _previousValue;
-				});
-            });
+            // Do CaPutAsync with a callback to update the value
+            var result = await Convergence.IO.EPICS.CA.Wrapper.CaputAsync(PVName, Text, typeof(string));
+            // Do a CaGetAsync to check if the value was written
+            var rbv = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName, typeof(string));
+            if (rbv.Value as string == Text)
+                _previousValue = Text;
+            else
+                Text = _previousValue;
         }
     }
 }
