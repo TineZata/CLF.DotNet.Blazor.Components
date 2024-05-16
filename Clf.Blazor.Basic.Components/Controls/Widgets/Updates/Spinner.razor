@@ -101,27 +101,6 @@
 		}
 	}
 
-	protected override void OnInitialized()
-	{
-		base.OnInitialized();
-		StringValue = Converters.GetPrecisionText(Value, Precision);
-	}
-
-
-	private void OnConnectionChanged(Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs args)
-	{
-		if (args.op == Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs.CA_OP_CONN_UP)
-		{
-			PVBorderStatus = BorderStatus.Connected;
-			PVIsDisabled = false;
-		}
-		else
-		{
-			PVBorderStatus = BorderStatus.NotConnected;
-			PVIsDisabled = true;
-		}
-	}
-
 	protected override async Task OnInitializedAsync()
 	{
 		this.Width = this.Width == 0 ? SpinnerStyle.DEFAULT_WIDTH : this.Width;
@@ -129,15 +108,21 @@
 
 		if (PVName != string.Empty)
 		{
-			this.ConnectionCallback = OnConnectionChanged;
-			if (this.TaskConnect().Result == EndPointStatus.Okay)
+			if (this.TaskConnect(monitorConnectionChange: true).Result == EndPointStatus.Okay)
 			{
 				Precision = this.TaskGetPREC().Result;
 				Maximum = this.TaskHOPR().Result;
 				Minimum = this.TaskLOPR().Result;
 				if (ShowUnits) Units = this.TaskGetUnits().Result;
+				// Get the value using Wrapper.CagetAsync
+				var rbv = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName, typeof(double));
+				if (rbv.Status == EndPointStatus.Okay)
+				{
+					Value = Convert.ToDouble(rbv.Value);
+				}
 			}
 		}
+		StringValue = Converters.GetPrecisionText(Value, Precision);
 	}
 
 	public void OnValuePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)

@@ -54,19 +54,6 @@
     public bool WaitForAcknowledgement { get; set; } = false;
 
     private string _previousValue = "";
-    private void OnConnectionChanged(Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs args)
-    {
-        if (args.op == Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs.CA_OP_CONN_UP)
-        {
-            PVBorderStatus = BorderStatus.Connected;
-            PVIsDisabled = false;
-        }
-        else
-        {
-            PVBorderStatus = BorderStatus.NotConnected;
-            PVIsDisabled = true;
-        }
-    }
 
     protected override void OnInitialized()
     {
@@ -79,8 +66,7 @@
         {
             this.Width = this.Width == 0 ? TextEntryStyle.DEFAULT_WIDTH : this.Width;
             this.Height = this.Height == 0 ? TextEntryStyle.DEFAULT_HEIGHT : this.Height;
-            this.ConnectionCallback = OnConnectionChanged;
-            if (this.TaskConnect().Result == EndPointStatus.Okay)
+            if (this.TaskConnect(monitorConnectionChange:true).Result == EndPointStatus.Okay)
 			{
 				Precision = this.TaskGetPREC().Result;
 				if (ShowUnits) Units = this.TaskGetUnits().Result;
