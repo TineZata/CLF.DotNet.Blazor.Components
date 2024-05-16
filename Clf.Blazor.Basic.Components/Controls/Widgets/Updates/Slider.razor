@@ -24,7 +24,7 @@
 						   disabled=@PVGetDisableStatus()
 						   list="tick-marks"
 						   @oninput="UpdateSelectedPercentage"
-						   @onchange="OnSliderValueChange" />
+						   @onchange="OnSliderValueChangeAsync" />
 					@if (ShowValue)
 					{
 						<output>@DraggedValue</output>
@@ -67,7 +67,7 @@
 	public double DraggedValue { get; set; }
 	public int DraggedPercentage => (int)Math.Floor((DraggedValue - Minimum) / (Maximum - Minimum) * 100);
 
-	private async void OnSliderValueChange(ChangeEventArgs e)
+	private async void OnSliderValueChangeAsync(ChangeEventArgs e)
 	{
 		// Send the value with Wrapper.CaputAsync
 		await Convergence.IO.EPICS.CA.Wrapper.CaputAsync(PVName, DraggedValue, typeof(double));

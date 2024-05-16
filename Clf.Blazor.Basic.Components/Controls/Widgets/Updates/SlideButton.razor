@@ -16,7 +16,7 @@
 				<label class="slide-button-track @Class" style="--slide-button-width:@GetWidth(); --slide-button-height:@GetHeight(); --slide-button-on-colour:@GetOnColour(); --slide-button-off-colour:@GetOffColour();">
 					<input type="checkbox"
 						   @bind="@Value"
-						   @onclick="OnBooleanWidgetClicked" />
+						   @onclick="OnBooleanWidgetClickedAsync" />
 				</label>
 				@if (IsLabelExist())
 				{
@@ -89,7 +89,7 @@
 		Convergence.IO.EPICS.CA.Wrapper.Disconnect(PVName);
 	}
 
-	private async Task OnBooleanWidgetClicked(MouseEventArgs e)
+	private async Task OnBooleanWidgetClickedAsync(MouseEventArgs e)
 	{
 		// If mouse event is right click release
 		if (e.Button == 1)

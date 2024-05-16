@@ -122,14 +122,6 @@
 		StringValue = Converters.GetPrecisionText(Value, Precision);
 	}
 
-	public void OnValuePropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-	{
-		if (e.PropertyName == nameof(Value) || e.PropertyName == nameof(Precision))
-		{
-			StringValue = Converters.GetPrecisionText(Value, Precision);
-		}
-	}
-
 	private void OnBlur(FocusEventArgs e)
 	{
 		//When the focus is lost
