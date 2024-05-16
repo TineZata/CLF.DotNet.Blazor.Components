@@ -85,20 +85,16 @@
 		this.Width = this.Width == 0 ? SliderStyle.DEFAULT_WIDTH : this.Width;
 		this.Height = this.Height == 0 ? SliderStyle.DEFAULT_HEIGHT : this.Height;
 
-		// Check PVName is not null 
-		if (string.IsNullOrEmpty(PVName))
+		// Check PVName is not null and Connect to the PV
+		if (!string.IsNullOrEmpty(PVName) && this.TaskConnect(monitorConnectionChange: true).Result == EndPointStatus.Okay)
 		{
-			// Connect to the PV
-			if (this.TaskConnect(monitorConnectionChange: true).Result == EndPointStatus.Okay)
+			Maximum = this.TaskHOPR().Result;
+			Minimum = this.TaskLOPR().Result;
+			// Get the value using Wrapper.CagetAsync
+			var rbv = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName, typeof(double));
+			if (rbv.Status == EndPointStatus.Okay)
 			{
-				Maximum = this.TaskHOPR().Result;
-				Minimum = this.TaskLOPR().Result;
-				// Get the value using Wrapper.CagetAsync
-				var rbv = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName, typeof(double));
-				if (rbv.Status == EndPointStatus.Okay)
-				{
-					Value = Convert.ToDouble(rbv.Value);
-				}
+				Value = Convert.ToDouble(rbv.Value);
 			}
 		}
 	}
@@ -131,11 +127,6 @@
 	private string GetHeight()
 	{
 		return Height != 0 ? $"{Height}px" : "var(--clf-slider-default-height)";
-	}
-
-	private bool GetDisableStatus()
-	{
-		return Utilities.GetBorderStatusDisable(PVBorderStatus) || PVIsDisabled;
 	}
 
 	void IDisposable.Dispose()

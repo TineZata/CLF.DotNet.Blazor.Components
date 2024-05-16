@@ -1,4 +1,5 @@
-﻿using Clf.Blazor.Basic.Components.Controls.Models;
+﻿using Clf.Blazor.Basic.Components.Controls.Helpers;
+using Clf.Blazor.Basic.Components.Controls.Models;
 using Convergence;
 using Convergence.IO.EPICS.CA;
 using Microsoft.AspNetCore.Components;
@@ -25,7 +26,7 @@ namespace Clf.Blazor.Basic.Components.Controls
         [Parameter]
         public BorderStatus PVBorderStatus { get; set; } = BorderStatus.NotConnected;
 
-		public void PVConnectionChanged(Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs args)
+		private void PVConnectionChanged(Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs args)
 		{
 			if (args.op == Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs.CA_OP_CONN_UP)
 			{
@@ -37,6 +38,11 @@ namespace Clf.Blazor.Basic.Components.Controls
 				PVBorderStatus = BorderStatus.NotConnected;
 				PVIsDisabled = true;
 			}
+		}
+
+		public bool PVGetDisableStatus()
+		{
+			return Utilities.GetBorderStatusDisable(PVBorderStatus) || PVIsDisabled;
 		}
 
 		public async Task<EndPointStatus> TaskConnect(bool monitorConnectionChange)

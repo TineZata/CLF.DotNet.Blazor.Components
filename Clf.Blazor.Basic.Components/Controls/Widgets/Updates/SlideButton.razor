@@ -1,70 +1,101 @@
 ﻿@using Clf.Blazor.Basic.Components.Controls.Helpers;
-@using Clf.Blazor.Basic.Components.Controls.ViewModels.UpdateWidgetViewModels
 @using Clf.Blazor.Basic.Components.Controls.Models
 @using Clf.Blazor.Basic.Components.Controls.Widgets.Helpers
+@using Convergence
+@using Clf.Common.ImageProcessing
 @using Microsoft.AspNetCore.Components.Web
 @using Clf.Blazor.Basic.Components.Controls.Widgets.Containers
-@inherits WidgetBase
+@inherits PVWidgetBase
 @implements IDisposable
 
-@if (ViewModel.IsVisible)
+@if (IsVisible)
 {
-  <Alarm BorderStatus="ViewModel.BorderStatus" ContentDisabledTooltip="@(ViewModel.ShowTooltip? ViewModel.TooltipText:string.Empty)" IsContentDisabled="@ViewModel.IsDisabled">
-    <Tooltip Text="@(ViewModel.ShowTooltip? ViewModel.TooltipText:string.Empty)">
-      <div class="slide-button-wrapper" disabled="@ViewModel.GetDisableStatus()">
-        <label class="slide-button-track @Class" style="--slide-button-width:@GetWidth(); --slide-button-height:@GetHeight(); --slide-button-on-colour:@GetOnColour(); --slide-button-off-colour:@GetOffColour();">
-          <input type="checkbox"
-          @bind="@ViewModel.Value"
-          @onclick="ViewModel.OnBooleanWidgetClicked" />
-        </label>
-        @if (IsLabelExist())
-        {
-          @ViewModel.Label
-        }
-      </div>
-    </Tooltip>
-  </Alarm>
+	<Alarm BorderStatus="PVBorderStatus" ContentDisabledTooltip="@(ShowTooltip? TooltipText:string.Empty)" IsContentDisabled="@PVIsDisabled">
+		<Tooltip Text="@(ShowTooltip? TooltipText:string.Empty)">
+			<div class="slide-button-wrapper" disabled="@PVGetDisableStatus()">
+				<label class="slide-button-track @Class" style="--slide-button-width:@GetWidth(); --slide-button-height:@GetHeight(); --slide-button-on-colour:@GetOnColour(); --slide-button-off-colour:@GetOffColour();">
+					<input type="checkbox"
+						   @bind="@Value"
+						   @onclick="OnBooleanWidgetClicked" />
+				</label>
+				@if (IsLabelExist())
+				{
+					@Label
+				}
+			</div>
+		</Tooltip>
+	</Alarm>
 }
 
 @code
 {
-  [Parameter]
-  public SlideButtonViewModel ViewModel { get; set; } = new SlideButtonViewModel();
+	[Parameter]
+	public string Label { get; set; } = string.Empty;
+	[Parameter]
+	public bool Value { get; set; }
+	[Parameter]
+	public Colour OnColor { get; set; } = SlideButtonStyle.DEFAULT_ON_COLOR;
+	[Parameter]
+	public Colour OffColor { get; set; } = SlideButtonStyle.DEFAULT_OFF_COLOR;
 
-  protected override void OnInitialized()
-  {
-    base.OnInitialized();
-    ViewModel.PropertyChanged += OnPropertyChanged;
-  }
 
-  private string GetWidth()
-  {
-    return ViewModel.Width != null ? $"{ViewModel.Width}px" : "var(--clf-slide-button-default-width)";
-  }
 
-  private string GetHeight()
-  {
-    return ViewModel.Height != null ? $"{ViewModel.Height}px" : "var(--clf-slide-button-default-height)";
-  }
+	protected override async Task OnInitializedAsync()
+	{
+		// Set default width and height if values are set to zero
+		this.Width = this.Width == 0 ? SlideButtonStyle.DEFAULT_WIDTH : this.Width;
+		this.Height = this.Height == 0 ? SlideButtonStyle.DEFAULT_HEIGHT : this.Height;
 
-  private string GetOnColour()
-  {
-    return ViewModel.OnColor != null ? ViewModel.OnColor.HtmlRgbaString : "var(--clf-slide-button-track-on-colour)";
-  }
+		// Check is PV is not null of empty and TaskConnect is Okay
+		if (!string.IsNullOrEmpty(PVName) && 
+			this.TaskConnect(monitorConnectionChange: true).Result == EndPointStatus.Okay)
+		{
+			// Get the value from the PV using Wrapper.CagetAsync
+			var rbv = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName, typeof(bool));
+			if (rbv.Status == EndPointStatus.Okay)
+			{
+				this.Value = (bool)rbv.Value;
+			}
+		}
+	}
 
-  private string GetOffColour()
-  {
-    return ViewModel.OffColor != null ? ViewModel.OffColor.HtmlRgbaString : "var(--clf-slide-button-track-off-colour)";
-  }
+	private string GetWidth()
+	{
+		return Width != 0 ? $"{Width}px" : "var(--clf-slide-button-default-width)";
+	}
 
-  private bool IsLabelExist()
-  {
-    return !string.IsNullOrEmpty(ViewModel.Label);
-  }
+	private string GetHeight()
+	{
+		return Height != 0 ? $"{Height}px" : "var(--clf-slide-button-default-height)";
+	}
 
-  void IDisposable.Dispose()
-  {
-    ViewModel.PropertyChanged -= OnPropertyChanged;
-  }
+	private string GetOnColour()
+	{
+		return OnColor != null ? OnColor.HtmlRgbaString : "var(--clf-slide-button-track-on-colour)";
+	}
 
+	private string GetOffColour()
+	{
+		return OffColor != null ? OffColor.HtmlRgbaString : "var(--clf-slide-button-track-off-colour)";
+	}
+
+	private bool IsLabelExist()
+	{
+		return !string.IsNullOrEmpty(Label);
+	}
+
+	void IDisposable.Dispose()
+	{
+		Convergence.IO.EPICS.CA.Wrapper.Disconnect(PVName);
+	}
+
+	private async Task OnBooleanWidgetClicked(MouseEventArgs e)
+	{
+		// If mouse event is right click release
+		if (e.Button == 1)
+		{
+			// Send the value with Wrapper.CaputAsync
+			await Convergence.IO.EPICS.CA.Wrapper.CaputAsync(PVName, Value, typeof(bool));
+		}
+	}
 }

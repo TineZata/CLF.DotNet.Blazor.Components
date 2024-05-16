@@ -106,20 +106,17 @@
 		this.Width = this.Width == 0 ? SpinnerStyle.DEFAULT_WIDTH : this.Width;
 		this.Height = this.Height == 0 ? SpinnerStyle.DEFAULT_HEIGHT : this.Height;
 
-		if (PVName != string.Empty)
+		if (PVName != string.Empty && this.TaskConnect(monitorConnectionChange: true).Result == EndPointStatus.Okay)
 		{
-			if (this.TaskConnect(monitorConnectionChange: true).Result == EndPointStatus.Okay)
+			Precision = this.TaskGetPREC().Result;
+			Maximum = this.TaskHOPR().Result;
+			Minimum = this.TaskLOPR().Result;
+			if (ShowUnits) Units = this.TaskGetUnits().Result;
+			// Get the value using Wrapper.CagetAsync
+			var rbv = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName, typeof(double));
+			if (rbv.Status == EndPointStatus.Okay)
 			{
-				Precision = this.TaskGetPREC().Result;
-				Maximum = this.TaskHOPR().Result;
-				Minimum = this.TaskLOPR().Result;
-				if (ShowUnits) Units = this.TaskGetUnits().Result;
-				// Get the value using Wrapper.CagetAsync
-				var rbv = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName, typeof(double));
-				if (rbv.Status == EndPointStatus.Okay)
-				{
-					Value = Convert.ToDouble(rbv.Value);
-				}
+				Value = Convert.ToDouble(rbv.Value);
 			}
 		}
 		StringValue = Converters.GetPrecisionText(Value, Precision);
