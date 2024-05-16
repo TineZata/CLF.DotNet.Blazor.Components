@@ -15,13 +15,13 @@
 		<div class="slider-wrapper @Class" style="--slider-width:@GetWidth(); --slider-height:@GetHeight();
                     --slider-selected-percentage:@($"{DraggedPercentage}%");">
 			<Tooltip Text="@(ShowTooltip? TooltipText:string.Empty)">
-				<div class="range @RangeClass" disabled=@GetDisableStatus() show-ticks="@ShowTicks" style="--step: @TickInterval; --min:@Minimum; --max:@Maximum; --value:@DraggedValue;">
+				<div class="range @RangeClass" disabled=@PVGetDisableStatus() show-ticks="@ShowTicks" style="--step: @TickInterval; --min:@Minimum; --max:@Maximum; --value:@DraggedValue;">
 					<input type="range"
 						   min="@Minimum"
 						   max="@Maximum"
 						   value="@Value"
 						   step="@Increment"
-						   disabled=@GetDisableStatus()
+						   disabled=@PVGetDisableStatus()
 						   list="tick-marks"
 						   @oninput="UpdateSelectedPercentage"
 						   @onchange="OnSliderValueChange" />
