@@ -4,86 +4,95 @@
 @using Clf.Blazor.Basic.Components.Controls.Models
 @using Clf.Blazor.Basic.Components.Controls.Widgets.Containers
 @using Microsoft.AspNetCore.Components.Web
-@inherits WidgetBase
+@inherits PVWidgetBase
 @implements IDisposable
 
 
-@if (ViewModel.IsVisible)
+@if (IsVisible)
 {
-  <Alarm BorderStatus="@ViewModel.BorderStatus" ContentDisabledTooltip="@(ViewModel.ShowTooltip? ViewModel.TooltipText:string.Empty)" IsContentDisabled="@ViewModel.IsDisabled">
-    <Tooltip Text="@(ViewModel.ShowTooltip? ViewModel.TooltipText:string.Empty)">
-      <button class="@GetClass() @Class"
-              style="--action-button-width: @GetWidth(); --action-button-height:@GetHeight()"
-      @onclick="ViewModel.OnActionButtonClicked"
-              disabled="@ViewModel.GetDisableStatus()">
-        <div class="clf-button-body">
-          @if (Icon != null)
-          {
-            @Icon
-          }
-          else
-          {
-            var iconId = GetIconId();
-            if (string.IsNullOrEmpty(iconId) == false)
-            {
-              <SingleColourIcon class="clf-icon-small" IconId="@iconId" />
-            }
-          }
-          @if (string.IsNullOrEmpty(ViewModel.Text) == false)
-          {
-            @ViewModel.Text
-          }
-        </div>
+	<Alarm BorderStatus="@PVBorderStatus" ContentDisabledTooltip="@(ShowTooltip?TooltipText:string.Empty)" IsContentDisabled="@PVIsDisabled">
+		<Tooltip Text="@(ShowTooltip? TooltipText:string.Empty)">
+			<button class="@GetClass() @Class"
+					style="--action-button-width: @GetWidth(); --action-button-height:@GetHeight()"
+					@onclick="OnActionButtonClicked"
+					disabled="@PVGetDisableStatus()">
+				<div class="clf-button-body">
+					@if (Icon != null)
+					{
+						@Icon
+					}
+					else
+					{
+						var iconId = GetIconId();
+						if (string.IsNullOrEmpty(iconId) == false)
+						{
+							<SingleColourIcon class="clf-icon-small" IconId="@iconId" />
+						}
+					}
+					@if (string.IsNullOrEmpty(Text) == false)
+					{
+						@Text
+					}
+				</div>
 
-      </button>
-    </Tooltip>
-  </Alarm>
+			</button>
+		</Tooltip>
+	</Alarm>
 
 }
 
 @code {
-  [Parameter]
-  public ActionButtonViewModel ViewModel { get; set; } = new ActionButtonViewModel();
 
-  [Parameter]
-  public RenderFragment? Icon { get; set; }
+	[Parameter]
+	public string Text { get; set; } = string.Empty;
+	[Parameter]
+	public RenderFragment? Icon { get; set; }
+	[Parameter]
+	public string? IconId { get; set; }
+	[Parameter]
+	public ButtonType Type { get; set; } = ButtonType.Default;
 
-  [Parameter]
-  public string? IconId { get; set; }
 
-  protected override void OnInitialized()
-  {
-    base.OnInitialized();
-    ViewModel.PropertyChanged += OnPropertyChanged;
-  }
+	protected override void OnInitialized()
+	{
+		base.OnInitialized();
+		// Set default width and height if values are set to zero
+		this.Width = this.Width == 0 ? SlideButtonStyle.DEFAULT_WIDTH : this.Width;
+		this.Height = this.Height == 0 ? SlideButtonStyle.DEFAULT_HEIGHT : this.Height;
+	}
 
-  private string GetWidth()
-  {
-    return ViewModel.Width != null ? $"{ViewModel.Width}px" : "var(--clf-action-button-default-width)";
-  }
+	private string GetWidth()
+	{
+		return Width != null ? $"{Width}px" : "var(--clf-action-button-default-width)";
+	}
 
-  private string GetHeight()
-  {
-    return ViewModel.Height != null ? $"{ViewModel.Height}px" : "var(--clf-action-button-default-height)";
-  }
+	private string GetHeight()
+	{
+		return Height != null ? $"{Height}px" : "var(--clf-action-button-default-height)";
+	}
 
-  private string? GetIconId()
-  {
-    if (string.IsNullOrEmpty(IconId) && ViewModel.Type == ButtonType.Navigation)
-    {
-      return "clf_ic_settings_24_regular";
-    }
-    else
-      return IconId;
-  }
+	private string? GetIconId()
+	{
+		if (string.IsNullOrEmpty(IconId) && Type == ButtonType.Navigation)
+		{
+			return "clf_ic_settings_24_regular";
+		}
+		else
+			return IconId;
+	}
 
-  private string GetClass()
-  {
-    return $"{Utilities.GetButtonClass(ViewModel.Type)} action-button";
-  }
+	private string GetClass()
+	{
+		return $"{Utilities.GetButtonClass(Type)} action-button";
+	}
 
-  void IDisposable.Dispose()
-  {
-    ViewModel.PropertyChanged -= OnPropertyChanged;
-  }
+	private async Task OnActionButtonClicked(MouseEventArgs e)
+	{
+		await Convergence.IO.EPICS.CA.Wrapper.CaputAsync(PVName + ".PROC", 1, typeof(Int16));
+	}
+
+	void IDisposable.Dispose()
+	{
+		// do nothing
+	}
 }
