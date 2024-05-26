@@ -70,54 +70,7 @@
 			{
 				this.SelectedItem = (string)rbv.Value;
 
-				// Get the zero string
-				var zero = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName + ".ZRST");
-				_full_list[0] = zero.Value != null ? (string)zero.Value : string.Empty;
-				// Get the one string
-				var one = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName + ".ONST");
-				_full_list[1] = one.Value != null ? (string)one.Value : string.Empty;
-				// Get the two string
-				var two = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName + ".TWST");
-				_full_list[2] = two.Value != null ? (string)two.Value : string.Empty;
-				// Get the three string
-				var three = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName + ".THST");
-				_full_list[3] = three.Value != null ? (string)three.Value : string.Empty;
-				// Get the four string
-				var four = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName + ".FRST");
-				_full_list[4] = four.Value != null ? (string)four.Value : string.Empty;
-				// Get the five string
-				var five = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName + ".FVST");
-				_full_list[5] = five.Value != null ? (string)five.Value : string.Empty;
-				// Get the six string
-				var six = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName + ".SXST");
-				_full_list[6] = six.Value != null ? (string)six.Value : string.Empty;
-				// Get the seven string
-				var seven = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName + ".SVST");
-				_full_list[7] = seven.Value != null ? (string)seven.Value : string.Empty;
-				// Get the eight string
-				var eight = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName + ".EIST");
-				_full_list[8] = eight.Value != null ? (string)eight.Value : string.Empty;
-				// Get the nine string
-				var nine = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName + ".NIST");
-				_full_list[9] = nine.Value != null ? (string)nine.Value : string.Empty;
-				// Get the ten string
-				var ten = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName + ".TEST");
-				_full_list[10] = ten.Value != null ? (string)ten.Value : string.Empty;
-				// Get the eleven string
-				var eleven = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName + ".ELST");
-				_full_list[11] = eleven.Value != null ? (string)eleven.Value : string.Empty;
-				// Get the twelve string
-				var twelve = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName + ".TVST");
-				_full_list[12] = twelve.Value != null ? (string)twelve.Value : string.Empty;
-				// Get the thirteen string
-				var thirteen = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName + ".TTST");
-				_full_list[13] = thirteen.Value != null ? (string)thirteen.Value : string.Empty;
-				// Get the fourteen string
-				var fourteen = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName + ".FTST");
-				_full_list[14] = fourteen.Value != null ? (string)fourteen.Value : string.Empty;
-				// Get the fifteen string
-				var fifteen = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName + ".FFST");
-				_full_list[15] = fifteen.Value != null ? (string)fifteen.Value : string.Empty;
+				_full_list = await Convergence.IO.EPICS.CA.Helpers.GetFullMenuListAsync(PVName);
 
 				List<string> temp = new List<string>();
 				foreach (string item in _full_list)
