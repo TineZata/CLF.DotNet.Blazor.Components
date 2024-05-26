@@ -96,6 +96,12 @@
 		{
 			// Send the value with Wrapper.CaputAsync
 			await Convergence.IO.EPICS.CA.Wrapper.CaputAsync(PVName, Value, typeof(bool));
+			// Get the value from the PV using Wrapper.CagetAsync
+			var rbv = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName, typeof(bool));
+			if (rbv.Status == EndPointStatus.Okay)
+			{
+				this.Value = (bool)rbv.Value;
+			}
 		}
 	}
 }

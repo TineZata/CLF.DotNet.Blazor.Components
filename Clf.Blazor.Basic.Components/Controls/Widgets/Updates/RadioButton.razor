@@ -10,7 +10,7 @@
 
 @if (IsVisible)
 {
-	<Alarm BorderStatus="@PVBorderStatus" ContentDisabledTooltip="@(ShowTooltip?TooltipText:string.Empty)" IsContentDisabled="@IsDisabled">
+	<Alarm BorderStatus="@PVBorderStatus" ContentDisabledTooltip="@(ShowTooltip?TooltipText:string.Empty)" IsContentDisabled="@PVIsDisabled">
 		<div class="radio-button-group @GroupClass">
 			@foreach (var item in Items)
 			{
@@ -19,7 +19,7 @@
 						   style="--radio-button-width:@GetRadioButtonWidth(); --radio-button-height:@GetRadioButtonHeight();">
 						<input type="radio"
 							   checked="@(SelectedItem == item)"
-							   onchange="@(() => {SelectedItem = item; WriteSelectedItemToPV(); OnSelectionChange();})"
+							   onchange="@(() => {SelectedItem = item; WriteSelectedItemToPV();})"
 							   disabled="@PVGetDisableStatus()">
 						<span class="radio-button-label-text">@item</span>
 					</label>
@@ -40,6 +40,21 @@
 
 	private string[] _full_list = new string[16];
 
+	private void OnSelectionChanged(Convergence.IO.EPICS.CA.EventCallbackArgs args)
+	{
+		var index = (Int16)Convergence.IO.EPICS.CA.Helpers.DecodeEventData(args);
+		if (index >= 0 && index < Items.Length)
+		{
+			SelectedItem = Items[index];
+			StateHasChanged();
+		}
+	}
+
+	private async void WriteSelectedItemToPV()
+	{
+		await Convergence.IO.EPICS.CA.Wrapper.CaputAsync(PVName, SelectedItem);
+	}
+
 	protected override async Task OnInitializedAsync()
 	{
 		// Set default width and height if values are set to zero
@@ -50,7 +65,7 @@
 			this.TaskConnect(monitorConnectionChange: true).Result == EndPointStatus.Okay)
 		{
 			// Get the value from the PV using Wrapper.CagetAsync
-			var rbv = await Convergence.IO.EPICS.CA.Wrapper.CaputAsync(PVName, typeof(string));
+			var rbv = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName, typeof(string));
 			if (rbv.Status == EndPointStatus.Okay)
 			{
 				this.SelectedItem = (string)rbv.Value;
@@ -119,6 +134,9 @@
 				}
 				Items = temp.ToArray();
 			}
+
+			// Monitor the OnSelectionChanged method
+			await Convergence.IO.EPICS.CA.Wrapper.CamonitorAsync(PVName, typeof(short), OnSelectionChanged);
 		}
 	}
 
