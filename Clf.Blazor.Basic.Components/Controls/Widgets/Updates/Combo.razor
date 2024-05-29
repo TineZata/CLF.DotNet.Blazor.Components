@@ -1,0 +1,105 @@
+﻿@using Clf.Blazor.Basic.Components.Controls.Helpers
+@using Clf.Blazor.Basic.Components.Controls.Models
+@using Clf.Blazor.Basic.Components.Controls.Widgets.Helpers
+@using Microsoft.AspNetCore.Components.Web
+@using System.Collections.Specialized
+@using Clf.Blazor.Basic.Components.Controls.Widgets.Containers
+@using Convergence
+@inherits PVWidgetBase
+@implements IDisposable
+
+@if (IsVisible)
+{
+	<Alarm BorderStatus="@PVBorderStatus" ContentDisabledTooltip="@(ShowTooltip? TooltipText:string.Empty)" IsContentDisabled="@PVIsDisabled">
+		<Tooltip Text="@(ShowTooltip? TooltipText:string.Empty)">
+			<select class="@Class"
+					style="--combo-box-width:@GetComboWidth(); --combo-box-height:@GetComboHeight();"
+					value="@SelectedItem"
+					disabled="@PVGetDisableStatus()"
+					onchange="@((ChangeEventArgs e) => {SelectedItem = e.Value.ToString(); WriteSelectedItemToPV();})">
+
+				@foreach (var item in Items)
+				{
+					<option>
+						@item
+					</option>
+				}
+			</select>
+		</Tooltip>
+	</Alarm>
+}
+
+@code {
+
+	private string[] Items { get; set; } = { "?", "??" };
+	private string SelectedItem { get; set; } = "?";
+	private string[] _full_list = new string[16];
+
+	private void OnSelectionChanged(Convergence.IO.EPICS.CA.EventCallbackArgs args)
+	{
+		var index = (Int16)Convergence.IO.EPICS.CA.Helpers.DecodeEventData(args);
+		if (index >= 0 && index < Items.Length)
+		{
+			SelectedItem = Items[index];
+			StateHasChanged();
+		}
+	}
+	private async void WriteSelectedItemToPV()
+	{
+		await Convergence.IO.EPICS.CA.Wrapper.CaputAsync(PVName, SelectedItem);
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		// Set default width and height if values are set to zero
+		this.Width = this.Width == 0 ? ComboBoxStyle.DEFAULT_WIDTH : this.Width;
+		this.Height = this.Height == 0 ? ComboBoxStyle.DEFAULT_HEIGHT : this.Height;
+		// Check is PV is not null of empty and TaskConnect is Okay
+		if (!string.IsNullOrEmpty(PVName) &&
+			this.TaskConnect(monitorConnectionChange: true).Result == EndPointStatus.Okay)
+		{
+			// Get the value from the PV using Wrapper.CagetAsync
+			var rbv = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName, typeof(string));
+			if (rbv.Status == EndPointStatus.Okay)
+			{
+				this.SelectedItem = (string)rbv.Value;
+
+				_full_list = await Convergence.IO.EPICS.CA.Helpers.GetFullMenuListAsync(PVName);
+
+				List<string> temp = new List<string>();
+				foreach (string item in _full_list)
+				{
+					if (!string.IsNullOrEmpty(item))
+					{
+						temp.Add(item.Trim());
+					}
+					else
+					{
+						// Break when you see the first null or empty string
+						break;
+					}
+				}
+				Items = temp.ToArray();
+			}
+
+			// Monitor the OnSelectionChanged method
+			await Convergence.IO.EPICS.CA.Wrapper.CamonitorAsync(PVName, typeof(short), OnSelectionChanged);
+		}
+
+		private string GetComboWidth()
+		{
+			return Width != null ? $"{Width}px" : "var(--clf-combo-box-default-width)";
+		}
+
+		private string GetComboHeight()
+		{
+			return Height != null ? $"{Height}px" : "var(--clf-combo-box-default-height)";
+		}
+
+		void IDisposable.Dispose()
+		{
+			Convergence.IO.EPICS.CA.Wrapper.Disconnect(PVName);
+		}
+	}
+
+}
