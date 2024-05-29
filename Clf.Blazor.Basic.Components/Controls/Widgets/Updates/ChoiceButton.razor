@@ -2,97 +2,137 @@
 @using Clf.Blazor.Basic.Components.Controls.Models
 @using Clf.Blazor.Basic.Components.Controls.Widgets.Helpers
 @using Microsoft.AspNetCore.Components.Web
-@using Clf.Blazor.Basic.Components.Controls.ViewModels.UpdateWidgetViewModels
 @using Clf.Blazor.Basic.Components.Controls.Widgets.Containers
 @using System.Collections.Specialized
-@inherits WidgetBase
+@using Convergence
+@inherits PVWidgetBase
 @implements IDisposable
 
-@if (ViewModel.IsVisible)
+@if (IsVisible)
 {
-  <Alarm BorderStatus="@ViewModel.BorderStatus" ContentDisabledTooltip="@(ViewModel.ShowTooltip? ViewModel.TooltipText:string.Empty)" IsContentDisabled="@ViewModel.IsDisabled">
-    <div class="choice-button-container @Class"
-         style="--flex-direction:@GetFlexDirection();">
-      @foreach (var item in ViewModel.Items)
-      {
-        <Tooltip Text="@(ViewModel.ShowTooltip? ViewModel.TooltipText:string.Empty)">
-          <button class="@GetButtonClass(item)"
-                  style="--choice-button-width: @GetButtonWidth();--choice-button-height: @GetButtonHeight();"
-          @onclick="@(() => {OnButtonClicked(item);})"
-                  disabled="@ViewModel.GetDisableStatus()">
-            @item
-          </button>
-        </Tooltip>
-      }
-
-    </div>
-  </Alarm>
-
+	<Alarm BorderStatus="@PVBorderStatus" ContentDisabledTooltip="@(ShowTooltip? TooltipText:string.Empty)" IsContentDisabled="@PVIsDisabled">
+		<div class="choice-button-container @Class"
+			 style="--flex-direction:@GetFlexDirection();">
+			@foreach (var item in Items)
+			{
+				<Tooltip Text="@(ShowTooltip? TooltipText:string.Empty)">
+					<button class="@GetButtonClass(item)"
+							style="--choice-button-width: @GetButtonWidth();--choice-button-height: @GetButtonHeight();"
+							@onclick="@(() => {WriteSelectedItemToPV();})"
+							disabled="@PVGetDisableStatus()">
+						@item
+					</button>
+				</Tooltip>
+			}
+		</div>
+	</Alarm>
 }
 
 @code {
-  [Parameter]
-  public ChoiceButtonViewModel ViewModel { get; set; } = new ChoiceButtonViewModel();
+	[Parameter]
+	public bool IsHorizontal { get; set; } = false;
 
-  protected override void OnInitialized()
-  {
-    base.OnInitialized();
-    ViewModel.PropertyChanged += OnPropertyChanged;
-    ViewModel.Items.CollectionChanged += OnItemsCollectionChanged;
-  }
+	private string[] Items { get; set; } = { "?", "??" };
+	private string SelectedItem { get; set; } = "?";
+	private string[] _full_list = new string[16];
 
-  // helper
-  private void OnButtonClicked(string item)
-  {
-    ViewModel.SelectedItem = item;
-    ViewModel.WriteSelectedItemToPV();
-    ViewModel?.OnSelectionChange();
-  }
 
-  string GetButtonClass(string item)
-  {
-    string buttonClass = "choice-button";
-    if (ViewModel.SelectedItem == item)
-    {
-      buttonClass = buttonClass + " choice-button-selected";
-    }
+	private void OnSelectionChanged(Convergence.IO.EPICS.CA.EventCallbackArgs args)
+	{
+		var index = (Int16)Convergence.IO.EPICS.CA.Helpers.DecodeEventData(args);
+		if (index >= 0 && index < Items.Length)
+		{
+			SelectedItem = Items[index];
+			StateHasChanged();
+		}
+	}
 
-    if (ViewModel.IsHorizontal)
-    {
-      buttonClass = buttonClass + " choice-button-horizontal";
-    }
-    else
-    {
-      buttonClass = buttonClass + " choice-button-vertical";
-    }
-    return buttonClass;
-  }
+	private async void WriteSelectedItemToPV()
+	{
+		await Convergence.IO.EPICS.CA.Wrapper.CaputAsync(PVName, SelectedItem);
+	}
 
-  private string GetButtonWidth()
-  {
-    return ViewModel.ButtonWidth != null ? $"{ViewModel.ButtonWidth}px" : "var(--clf-action-button-default-width)";
-  }
-  private string GetButtonHeight()
-  {
-    return ViewModel.ButtonHeight != null ? $"{ViewModel.ButtonHeight}px" : "var(--clf-action-button-default-height)";
-  }
+	protected override async Task OnInitializedAsync()
+	{
+		// Set default width and height if values are set to zero
+		this.Width = this.Width == 0 ? ChoiceButtonStyle.DEFAULT_WIDTH : this.Width;
+		this.Height = this.Height == 0 ? RadioButtonStyle.DEFAULT_HEIGHT : this.Height;
+		// Check is PV is not null of empty and TaskConnect is Okay
+		if (!string.IsNullOrEmpty(PVName) &&
+			this.TaskConnect(monitorConnectionChange: true).Result == EndPointStatus.Okay)
+		{
+			// Get the value from the PV using Wrapper.CagetAsync
+			var rbv = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName, typeof(string));
+			if (rbv.Status == EndPointStatus.Okay)
+			{
+				this.SelectedItem = (string)rbv.Value;
 
-  private string GetFlexDirection()
-  {
-    if (ViewModel.IsHorizontal)
-    {
-      return "row";
-    }
-    else
-    {
-      return "column";
-    }
-  }
+				_full_list = await Convergence.IO.EPICS.CA.Helpers.GetFullMenuListAsync(PVName);
 
-  void IDisposable.Dispose()
-  {
-    ViewModel.PropertyChanged -= OnPropertyChanged;
-    ViewModel.Items.CollectionChanged -= OnItemsCollectionChanged;
-  }
+				List<string> temp = new List<string>();
+				foreach (string item in _full_list)
+				{
+					if (!string.IsNullOrEmpty(item))
+					{
+						temp.Add(item.Trim());
+					}
+					else
+					{
+						// Break when you see the first null or empty string
+						break;
+					}
+				}
+				Items = temp.ToArray();
+			}
+
+			// Monitor the OnSelectionChanged method
+			await Convergence.IO.EPICS.CA.Wrapper.CamonitorAsync(PVName, typeof(short), OnSelectionChanged);
+		}
+	}
+
+	string GetButtonClass(string item)
+	{
+		string buttonClass = "choice-button";
+		if (SelectedItem == item)
+		{
+			buttonClass = buttonClass + " choice-button-selected";
+		}
+
+		if (IsHorizontal)
+		{
+			buttonClass = buttonClass + " choice-button-horizontal";
+		}
+		else
+		{
+			buttonClass = buttonClass + " choice-button-vertical";
+		}
+		return buttonClass;
+	}
+
+	private string GetButtonWidth()
+	{
+		return Width != 0 ? $"{Width}px" : "var(--clf-action-button-default-width)";
+	}
+	private string GetButtonHeight()
+	{
+		return Height != 0 ? $"{Height}px" : "var(--clf-action-button-default-height)";
+	}
+
+	private string GetFlexDirection()
+	{
+		if (IsHorizontal)
+		{
+			return "row";
+		}
+		else
+		{
+			return "column";
+		}
+	}
+
+	void IDisposable.Dispose()
+	{
+		Convergence.IO.EPICS.CA.Wrapper.Disconnect(PVName);
+	}
 }
 
