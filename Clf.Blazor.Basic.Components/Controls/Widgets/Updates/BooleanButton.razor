@@ -1,111 +1,138 @@
 ﻿@using Clf.Blazor.Basic.Components.Controls.Helpers
-@using Clf.Blazor.Basic.Components.Controls.ViewModels.UpdateWidgetViewModels
 @using Clf.Blazor.Basic.Components.Controls.Models
 @using Clf.Blazor.Basic.Components.Controls.Widgets.Containers
 @using Clf.Blazor.Basic.Components.Controls.Widgets.Helpers
 @using Microsoft.AspNetCore.Components.Web
 @using System.Text;
-@inherits WidgetBase
+@using Convergence
+@using Clf.Common.ImageProcessing
+
+@inherits PVWidgetBase
 @implements IDisposable
 
-@if (ViewModel.IsVisible)
+@if (IsVisible)
 {
-  <Alarm BorderStatus="@ViewModel.BorderStatus" ContentDisabledTooltip="@(ViewModel.ShowTooltip? ViewModel.TooltipText:string.Empty)" IsContentDisabled="@ViewModel.IsDisabled">
-    <Tooltip Text="@(ViewModel.ShowTooltip? ViewModel.TooltipText:string.Empty)">
-      <button class="boolean-button @Class"
-              style=" background-color:@GetBackgroundColour(); --boolean-button-width: @GetWidth();
+	<Alarm BorderStatus="@PVBorderStatus" ContentDisabledTooltip="@(ShowTooltip? TooltipText:string.Empty)" IsContentDisabled="@PVIsDisabled">
+		<Tooltip Text="@(ShowTooltip? TooltipText:string.Empty)">
+			<button class="boolean-button @Class"
+					style=" background-color:@GetBackgroundColour(); --boolean-button-width: @GetWidth();
                     --boolean-button-height: @GetHeight(); --boolean-button-color: @GetColour();"
-      @onclick="ViewModel.OnBooleanWidgetClicked"
-              disabled="@ViewModel.GetDisableStatus()">
+					@onclick="OnBooleanWidgetClicked"
+					disabled="@PVGetDisableStatus()">
 
-        @if (ViewModel.Value == true)
-        {
-          @if (ButtonOn != null)
-          {
-            @ButtonOn
-          }
-          else
-          {
-            @ViewModel.OnLabel
-          }
-        }
-        else
-        {
-          @if (ButtonOff != null)
-          {
-            @ButtonOff
-          }
-          else
-          {
-            @ViewModel.OffLabel
-          }
-        }
-      </button>
-    </Tooltip>
-  </Alarm>
+				@if (Value == true)
+				{
+					@if (ButtonOn != null)
+					{
+						@ButtonOn
+					}
+					else
+					{
+						@OnLabel
+					}
+				}
+				else
+				{
+					@if (ButtonOff != null)
+					{
+						@ButtonOff
+					}
+					else
+					{
+						@OffLabel
+					}
+				}
+			</button>
+		</Tooltip>
+	</Alarm>
 }
 
 @code {
-  [Parameter]
-  public BooleanButtonViewModel ViewModel { get; set; } = new BooleanButtonViewModel();
-
-  [Parameter]
-  public RenderFragment? ButtonOn { get; set; }
-
-  [Parameter]
-  public RenderFragment? ButtonOff { get; set; }
 
 
-  protected override void OnInitialized()
-  {
-    base.OnInitialized();
-    ViewModel.PropertyChanged += OnPropertyChanged;
-  }
+	[Parameter]
+	public RenderFragment? ButtonOn { get; set; }
 
-  private string GetWidth()
-  {
-    return ViewModel.Width != null ? $"{ViewModel.Width}px" : "var(--clf-boolean-button-default-width)";
-  }
+	[Parameter]
+	public RenderFragment? ButtonOff { get; set; }
 
-  private string GetHeight()
-  {
-    return ViewModel.Height != null ? $"{ViewModel.Height}px" : "var(--clf-boolean-button-default-height)";
-  }
+	[Parameter]
+	public string OnLabel { get; set; } = "On";
+
+	[Parameter]
+	public string OffLabel { get; set; } = "Off";
+
+	[Parameter]
+	public Colour? OnColor { get; set; }
+
+	[Parameter]
+	public Colour? OffColor { get; set; }
+
+	private bool Value { get; set; }
+
+	private async void OnBooleanWidgetClicked()
+	{
+		Value = !Value;
+		await Convergence.IO.EPICS.CA.Wrapper.CaputAsync(PVName, Value, typeof(bool));
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		this.Width = this.Width == 0 ?  BooleanButtonStyle.DEFAULT_WIDTH : this.Width;
+		this.Height = this.Height == 0 ? BooleanButtonStyle.DEFAULT_HEIGHT : this.Height;
+
+		if (!string.IsNullOrEmpty(PVName) && this.TaskConnect(monitorConnectionChange: true).Result == EndPointStatus.Okay)
+		{
+			var value = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName, typeof(bool));
+			if (value != null)
+				Value = (bool)value.Value!;
+		}
+	}
+
+	private string GetWidth()
+	{
+		return Width != 0 ? $"{Width}px" : "var(--clf-boolean-button-default-width)";
+	}
+
+	private string GetHeight()
+	{
+		return Height != 0 ? $"{Height}px" : "var(--clf-boolean-button-default-height)";
+	}
 
 
-  private string GetBackgroundColour()
-  {
-    return (ViewModel.Value == true ?
-              ViewModel.OnColor != null ? ViewModel.OnColor.HtmlRgbaString : GetCssVariableForBooleanButtonBackgroundColour(true)
-            : ViewModel.OffColor != null ? ViewModel.OffColor.HtmlRgbaString : GetCssVariableForBooleanButtonBackgroundColour(false));
-  }
+	private string GetBackgroundColour()
+	{
+		return (Value == true ?
+					OnColor != null ? OnColor.HtmlRgbaString : GetCssVariableForBooleanButtonBackgroundColour(true)
+				:	OffColor != null ? OffColor.HtmlRgbaString : GetCssVariableForBooleanButtonBackgroundColour(false));
+	}
 
-  private string GetColour()
-  {
-    if (ViewModel.Value == true)
-    {
-      return "var(--clf-boolean-button-on-colour)";
-    }
-    else
-    {
-      return "var(--clf-boolean-button-off-colour)";
-    }
-  }
+	private string GetColour()
+	{
+		if (Value == true)
+		{
+			return "var(--clf-boolean-button-on-colour)";
+		}
+		else
+		{
+			return "var(--clf-boolean-button-off-colour)";
+		}
+	}
 
-  private string GetCssVariableForBooleanButtonBackgroundColour(bool value)
-  {
-    if (value == true)
-    {
-      return "var(--clf-boolean-button-background-on-colour)";
-    }
-    else
-    {
-      return "var(--clf-boolean-button-background-off-colour)";
-    }
-  }
+	private string GetCssVariableForBooleanButtonBackgroundColour(bool value)
+	{
+		if (value == true)
+		{
+			return "var(--clf-boolean-button-background-on-colour)";
+		}
+		else
+		{
+			return "var(--clf-boolean-button-background-off-colour)";
+		}
+	}
 
-  void IDisposable.Dispose()
-  {
-    ViewModel.PropertyChanged -= OnPropertyChanged;
-  }
+	void IDisposable.Dispose()
+	{
+		Convergence.IO.EPICS.CA.Wrapper.Disconnect(PVName);
+	}
 }
