@@ -8,10 +8,49 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Pages\CameraExample.razor.cs" />
+    <Compile Remove="Pages\CanvasDrawingTestPage_01.razor.cs" />
+    <Compile Remove="Pages\PixelMappingProfileGraph.razor.cs" />
+    <Compile Remove="Pages\PixelMappingTestPage_01.razor.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="Pages\AreaDetectorExamples.razor" />
+    <Content Remove="Pages\AreaDetectorSimSetup.razor" />
+    <Content Remove="Pages\CameraExample.razor" />
+    <Content Remove="Pages\CameraExamplesMain.razor" />
+    <Content Remove="Pages\CanvasDrawingTestPage_01.razor" />
+    <Content Remove="Pages\GraphComponentExamples.razor" />
+    <Content Remove="Pages\LedExamples.razor" />
+    <Content Remove="Pages\LogicSystemExamples.razor" />
+    <Content Remove="Pages\ModalDialogExamples.razor" />
+    <Content Remove="Pages\MultiStateLEDExamples.razor" />
+    <Content Remove="Pages\PixelMappingProfileGraph.razor" />
+    <Content Remove="Pages\PixelMappingTestPage_01.razor" />
+    <Content Remove="Pages\ProgressBarExamples.razor" />
+    <Content Remove="Pages\TabExamples.razor" />
+    <Content Remove="Pages\TextUpdateExamples.razor" />
+    <Content Remove="Pages\TreeViewExamples.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Pages\AreaDetectorExamples.razor.css" />
+    <None Remove="Pages\AreaDetectorSimSetup.razor.css" />
+    <None Remove="Pages\CameraExample.razor.css" />
+    <None Remove="Pages\CanvasDrawingTestPage_01.razor.js" />
+    <None Remove="Pages\GraphComponentExamples.razor.css" />
+    <None Remove="Pages\LedExamples.razor.css" />
+    <None Remove="Pages\ModalDialogExamples.razor.css" />
+    <None Remove="Pages\MultiStateLEDExamples.razor.css" />
+    <None Remove="Pages\PixelMappingTestPage_01.razor.css" />
+    <None Remove="Pages\PixelMappingTestPage_01.razor.js" />
+    <None Remove="Pages\ProgressBarExamples.razor.css" />
+    <None Remove="Pages\TabExamples.razor.css" />
+    <None Remove="Pages\TextUpdateExamples.razor.css" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Clf.Blazor.Basic.Components\Clf.Blazor.Basic.Components.csproj" />
-    <ProjectReference Include="..\Clf.Blazor.Complex.Components\IntensityMap\Clf.Blazor.Complex.IntensityMap.csproj" />
-    <ProjectReference Include="..\Clf.Blazor.Complex.Components\LogicSystem\Clf.Blazor.Complex.LogicSystem.csproj" />
-    <ProjectReference Include="..\Example.LogicSystem.TestData\Example.LogicSystem.TestData.csproj" />
   </ItemGroup>
 
 </Project>
