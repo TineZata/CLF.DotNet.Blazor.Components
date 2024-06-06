@@ -1,10 +1,8 @@
 ﻿@page "/boolean-button-examples"
 @using Clf.Blazor.Basic.Components.Controls.Enums;
 @using Clf.Blazor.Basic.Components.Controls.Models;
-@using Clf.Blazor.Basic.Components.Controls.ViewModels.MonitorWidgetViewModels;
-@using Clf.Blazor.Basic.Components.Controls.ViewModels.UpdateWidgetViewModels;
-@using Clf.Blazor.Basic.Components.Controls.Widgets.Helpers
-@using Clf.Blazor.Basic.Components.Controls.Widgets.Monitors
+@* @using Clf.Blazor.Basic.Components.Controls.Widgets.Helpers
+@using Clf.Blazor.Basic.Components.Controls.Widgets.Monitors *@
 @using Clf.Blazor.Basic.Components.Controls.Widgets.Updates
 @using Clf.Common.ImageProcessing;
 
@@ -13,13 +11,13 @@
 <table>
   <tr>
     <th scope="row">Default</th>
-    <td><BooleanButton ViewModel="@_defaultOnBooleanButton" /></td>
-    <td><BooleanButton ViewModel="@_defaultOffBooleanButton" /></td>
+    <td><BooleanButton /></td>
+    <td><BooleanButton  /></td>
   </tr>
   <tr>
     <th scope="row">Custom Icons</th>
     <td>
-      <BooleanButton ViewModel="@_customIconOnBooleanButton">
+      <BooleanButton >
         <ButtonOn>
           <SingleColourIcon class="led-icon" IconId="clf_ic_dismiss_24_regular" />
         </ButtonOn>
@@ -29,7 +27,7 @@
       </BooleanButton>
     </td>
     <td>
-      <BooleanButton ViewModel="@_customIconOffBooleanButton">
+      <BooleanButton >
         <ButtonOn>
           <SingleColourIcon class="led-icon" IconId="clf_ic_dismiss_24_regular" />
         </ButtonOn>
@@ -41,98 +39,27 @@
   </tr>
   <tr>
     <th scope="row">Not Connected</th>
-    <td><BooleanButton ViewModel="@_notConnectedOnBooleanButton" /></td>
-    <td><BooleanButton ViewModel="@_notConnectedOffBooleanButton" /></td>
+    <td><BooleanButton  /></td>
+    <td><BooleanButton  /></td>
   </tr>
   <tr>
     <th scope="row">Major Alarm</th>
-    <td><BooleanButton ViewModel="@_majorAlarmOnBooleanButton" /></td>
-    <td><BooleanButton ViewModel="@_majorAlarmOffBooleanButton" /></td>
+    <td><BooleanButton  /></td>
+    <td><BooleanButton  /></td>
   </tr>
   <tr>
     <th scope="row">Minor Alarm</th>
-    <td><BooleanButton ViewModel="@_minorAlarmOnBooleanButton" /></td>
-    <td><BooleanButton ViewModel="@_minorAlarmOffBooleanButton" /></td>
+    <td><BooleanButton  /></td>
+    <td><BooleanButton  /></td>
   </tr>
   <tr>
     <th scope="row">Invalid</th>
-    <td><BooleanButton ViewModel="@_invalidOnBooleanButton" /></td>
-    <td><BooleanButton ViewModel="@_invalidOffBooleanButton" /></td>
+    <td><BooleanButton  /></td>
+    <td><BooleanButton /></td>
   </tr>
 
 </table>
 
 @code {
-
-
-  private BooleanButtonViewModel _defaultOnBooleanButton = new BooleanButtonViewModel(
-        tooltipText: "Default On",
-        borderStatus: BorderStatus.Connected,
-        value: true
-   );
-  private BooleanButtonViewModel _defaultOffBooleanButton = new BooleanButtonViewModel(
-       tooltipText: "Default Off",
-       borderStatus: BorderStatus.Connected,
-       value: false
-  );
-
-  private BooleanButtonViewModel _customIconOnBooleanButton = new BooleanButtonViewModel(
-        tooltipText: "Custom Icon On",
-        borderStatus: BorderStatus.Connected,
-        value: true
-   );
-  private BooleanButtonViewModel _customIconOffBooleanButton = new BooleanButtonViewModel(
-       tooltipText: "Custom Icon Off",
-       borderStatus: BorderStatus.Connected,
-       value: false
-  );
-
-  private BooleanButtonViewModel _notConnectedOnBooleanButton = new BooleanButtonViewModel(
-    tooltipText: "Default On",
-    borderStatus: BorderStatus.NotConnected,
-    value: true
-   );
-  private BooleanButtonViewModel _notConnectedOffBooleanButton = new BooleanButtonViewModel(
-       tooltipText: "Default Off",
-       borderStatus: BorderStatus.NotConnected,
-       value: false
-  );
-
-  private BooleanButtonViewModel _majorAlarmOnBooleanButton = new BooleanButtonViewModel(
-   tooltipText: "Default On",
-   borderStatus: BorderStatus.MajorAlarm,
-        value: true
-
-  );
-  private BooleanButtonViewModel _majorAlarmOffBooleanButton = new BooleanButtonViewModel(
-   tooltipText: "Default Off",
-   borderStatus: BorderStatus.MajorAlarm,
-       value: false
-  );
-
-  private BooleanButtonViewModel _minorAlarmOnBooleanButton = new BooleanButtonViewModel(
-    tooltipText: "Default On",
-    borderStatus: BorderStatus.MinorAlarm,
-        value: true
-
-   );
-  private BooleanButtonViewModel _minorAlarmOffBooleanButton = new BooleanButtonViewModel(
-  tooltipText: "Default Off",
-  borderStatus: BorderStatus.MinorAlarm,
-       value: false
-   );
-
-  private BooleanButtonViewModel _invalidOnBooleanButton = new BooleanButtonViewModel(
-   tooltipText: "Default On",
-   borderStatus: BorderStatus.Invalid,
-        value: true
-
-  );
-
-  private BooleanButtonViewModel _invalidOffBooleanButton = new BooleanButtonViewModel(
-   tooltipText: "Default Off",
-   borderStatus: BorderStatus.Invalid,
-       value: false
-  );
 
 }

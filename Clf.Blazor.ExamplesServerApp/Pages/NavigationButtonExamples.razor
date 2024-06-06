@@ -2,9 +2,7 @@
 
 @using Clf.Blazor.Basic.Components.Controls.Enums;
 @using Clf.Blazor.Basic.Components.Controls.Models;
-@using Clf.Blazor.Basic.Components.Controls.ViewModels.MonitorWidgetViewModels;
-@using Clf.Blazor.Basic.Components.Controls.ViewModels.UpdateWidgetViewModels;
-@using Clf.Blazor.Basic.Components.Controls.Widgets.Monitors
+@* @using Clf.Blazor.Basic.Components.Controls.Widgets.Monitors *@
 @using Clf.Blazor.Basic.Components.Controls.Widgets.Updates
 @using Clf.Common.ImageProcessing;
 
@@ -13,27 +11,27 @@
 <table>
   <tr>
     <th scope="row">Default</th>
-    <td><ActionButton ViewModel="@_defaultNavigationButton" /></td>
+    <td><ActionButton /></td>
   </tr>
   <tr>
     <th scope="row">Disabled</th>
-    <td><ActionButton ViewModel="@_disabledNavigationActionButton" /></td>
+    <td><ActionButton /></td>
   </tr>
   <tr>
     <th scope="row">Not Connected</th>
-    <td><ActionButton ViewModel="@_disconnectedNavigationActionButton" /></td>
+    <td><ActionButton /></td>
   </tr>
   <tr>
     <th scope="row">Minor Alarm</th>
-    <td><ActionButton ViewModel="@_minorAlarmNavigationActionButton" /></td>
+    <td><ActionButton /></td>
   </tr>
   <tr>
     <th scope="row">Major Alarm</th>
-    <td><ActionButton ViewModel="@_majorAlarmNavigationActionButton" /></td>
+    <td><ActionButton /></td>
   </tr>
   <tr>
     <th scope="row">Invalid</th>
-    <td><ActionButton ViewModel="@_invalidNavigationActionButton" /></td>
+    <td><ActionButton /></td>
   </tr>
 </table>
 
@@ -41,45 +39,5 @@
 
   private static string IconID = "clf_ic_settings_24_regular";
   private static string ButtonText = "Settings";
-
-  private ActionButtonViewModel _defaultNavigationButton = new ActionButtonViewModel(
-        text: ButtonText,
-        tooltipText: "Settings",
-        borderStatus: BorderStatus.Connected,
-        buttonType: ButtonType.Navigation
-  );
-
-  private ActionButtonViewModel _disabledNavigationActionButton = new ActionButtonViewModel(
-        text: ButtonText,
-        tooltipText: "Settings",
-        borderStatus: BorderStatus.Connected,
-        isDisabled: true,
-        buttonType: ButtonType.Navigation
-  );
-  private ActionButtonViewModel _disconnectedNavigationActionButton = new ActionButtonViewModel(
-       text: ButtonText,
-        tooltipText: "Settings",
-       borderStatus: BorderStatus.NotConnected,
-       buttonType: ButtonType.Navigation
-   );
-  private ActionButtonViewModel _minorAlarmNavigationActionButton = new ActionButtonViewModel(
-        text: ButtonText,
-        tooltipText: "Settings",
-        borderStatus: BorderStatus.MinorAlarm,
-        buttonType: ButtonType.Navigation
-  );
-  private ActionButtonViewModel _majorAlarmNavigationActionButton = new ActionButtonViewModel(
-        text: ButtonText,
-        tooltipText: "Settings",
-        borderStatus: BorderStatus.MajorAlarm,
-        buttonType: ButtonType.Navigation
-  );
-
-  private ActionButtonViewModel _invalidNavigationActionButton = new ActionButtonViewModel(
-      text: ButtonText,
-      tooltipText: "Settings",
-      borderStatus: BorderStatus.Invalid,
-      buttonType: ButtonType.Navigation
-  );
 
 }

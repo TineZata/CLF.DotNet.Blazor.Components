@@ -1,7 +1,7 @@
 ﻿@using Convergence
 @using Clf.Blazor.Basic.Components.Controls.Models
-@using Clf.Blazor.Basic.Components.Controls.Widgets.Containers
-@using Clf.Blazor.Basic.Components.Controls.Widgets.Helpers
+@* @using Clf.Blazor.Basic.Components.Controls.Widgets.Containers
+@using Clf.Blazor.Basic.Components.Controls.Widgets.Helpers *@
 @using Microsoft.AspNetCore.Components.Web
 @using Clf.Blazor.Basic.Components.Controls.Helpers
 @using System.ComponentModel
@@ -111,4 +111,10 @@
                 Text = _previousValue;
         }
     }
+
+    private void Dispose()
+	{
+		Convergence.IO.EPICS.CA.Wrapper.Disconnect(PVName);
+	}
+    
 }

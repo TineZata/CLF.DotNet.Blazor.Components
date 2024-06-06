@@ -1,18 +1,12 @@
 ﻿@using Clf.Blazor.Basic.Components.Controls.Enums;
 @using Clf.Blazor.Basic.Components.Controls.Models;
-@using Clf.Blazor.Basic.Components.Controls.ViewModels.ContainerWidgetViewModels;
-@using Clf.Blazor.Basic.Components.Controls.ViewModels.MonitorWidgetViewModels;
-@using Clf.Blazor.Basic.Components.Controls.ViewModels.UpdateWidgetViewModels;
-@using Clf.Blazor.Basic.Components.Controls.ViewModels;
-@using Clf.Blazor.Basic.Components.Controls.Widgets.Containers
+@* @using Clf.Blazor.Basic.Components.Controls.Widgets.Containers
 @using Clf.Blazor.Basic.Components.Controls.Widgets.Containers.Dashboard
 @using Clf.Blazor.Basic.Components.Controls.Widgets.Containers.TabWidget
-@using Clf.Blazor.Basic.Components.Controls.Widgets.Monitors
+@using Clf.Blazor.Basic.Components.Controls.Widgets.Monitors *@
 @using Clf.Blazor.Basic.Components.Controls.Widgets.Updates
-@using Clf.Blazor.Basic.Components.Controls.Widgets.Helpers;
-@using Clf.Blazor.Complex.IntensityMap.ViewModels;
-@using Clf.Blazor.Complex.IntensityMap.Views
-@using Clf.ChannelAccess;
+@* @using Clf.Blazor.Basic.Components.Controls.Widgets.Helpers;
+@using Clf.Blazor.Complex.IntensityMap.Views *@
 @using System.ComponentModel;
 @using Clf.Common.Graphs;
 @using Clf.Common.ImageProcessing;
@@ -31,9 +25,9 @@
             <Tab Title="Display" Name="display">
               <div class="settings-container">
                 <label>Colour Map</label>
-                <ComboBox ViewModel="@(new ComboBoxViewModel(itemsFromPv: true, channelRecord: new ChannelRecord(_colourMapPVName, _channelsHandler)))" />
+                <ComboBox  />
                 <label>Normalisation</label>
-                <Checkbox ViewModel="@(new CheckboxViewModel(label: "Auto", channelRecord: new ChannelRecord(_autoNormalisePVName, _channelsHandler)))" />
+                <Checkbox  />
                 <div class="manual-normalisation">
                   <Slider ViewModel="@_manualNormalisationValue" />
                 </div>
@@ -49,9 +43,9 @@
                 <label>Y</label>
                 <Slider ViewModel="@_crosshairY" />
                 <label>Size</label>
-                <Slider ViewModel="@(new SliderViewModel(minimum:5, maximum: 50, showSpinner: true, channelRecord: new(_crosshairSizePVName, _channelsHandler)))" />
+                <Slider  />
                 <label>Colour</label>
-                <ColorPicker ViewModel="@(new ColorPickerViewModel(channelRecord: new(_crosshairColourPVName, _channelsHandler)))" />
+                <ColorPicker />
               </div>
             </Tab>
           </Tabs>
@@ -93,19 +87,7 @@
   public string Title { get; set; } = "Camera 1";
 
   
-  private IntensityProfileGraphViewModel _verticalProfileGraph;
-  private IntensityProfileGraphViewModel _horizontalProfileGraph;
-  private ImageViewerViewModel _intensityMapImageViewer;
-
-  private SliderViewModel _manualNormalisationValue;
-
-  private CheckboxViewModel _showCrosshair;
-  private SliderViewModel _crosshairX;
-  private SliderViewModel _crosshairY;
-
-  private DropDownButtonViewModel _viewerSettings;
-
-  private ChannelsHandler _channelsHandler = new ChannelsHandler();
+ 
   private string _cameraPVName = "image1:ArrayData";
   private string _cameraXSizePVName = "image1:ArraySize0_RBV";
   private string _cameraYSizePVName = "image1:ArraySize1_RBV";
@@ -131,7 +113,7 @@
   {
     return (__builder) =>
     {
-      <DropDownButton class="clf-pane-header-toggle-button" ViewModel="@_viewerSettings">
+      <DropDownButton class="clf-pane-header-toggle-button" >
         <Icon>
           <SingleColourIcon class="clf-pane-header-icon" IconId="clf_ic_settings_24_regular" />
         </Icon>
@@ -141,27 +123,27 @@
               <Tab Title="Display" Name="display">
                 <div class="settings-container">
                   <label>Colour Map</label>
-                  <ComboBox ViewModel="@(new ComboBoxViewModel(itemsFromPv: true, channelRecord: new ChannelRecord(_colourMapPVName, _channelsHandler)))" />
+                  <ComboBox  />
                   <label>Normalisation</label>
-                  <Checkbox ViewModel="@(new CheckboxViewModel(label: "Auto", channelRecord: new ChannelRecord(_autoNormalisePVName, _channelsHandler)))" />
+                  <Checkbox  />
                   <div class="manual-normalisation">
-                    <Slider ViewModel="@_manualNormalisationValue" />
+                    <Slider  />
                   </div>
                 </div>
               </Tab>
               <Tab Title="Crosshair" Name="crosshair">
                 <div class="overlay-container">
                   <div class="show-crosshair">
-                    <Checkbox ViewModel="@_showCrosshair" />
+                    <Checkbox  />
                   </div>
                   <label>X</label>
-                  <Slider ViewModel="@_crosshairX" />
+                  <Slider  />
                   <label>Y</label>
-                  <Slider ViewModel="@_crosshairY" />
+                  <Slider  />
                   <label>Size</label>
-                  <Slider ViewModel="@(new SliderViewModel(minimum:5, maximum: 50, showSpinner: true, channelRecord: new(_crosshairSizePVName, _channelsHandler)))" />
+                  <Slider  />
                   <label>Colour</label>
-                  <ColorPicker ViewModel="@(new ColorPickerViewModel(channelRecord: new(_crosshairColourPVName, _channelsHandler)))" />
+                  <ColorPicker  />
                 </div>
               </Tab>
             </Tabs>
@@ -190,72 +172,12 @@
 
     CreateLocalChannels();
 
-    _manualNormalisationValue = new SliderViewModel(
-      minimum: 0.0,
-      maximum: 255.0,
-      isDisabled: true,
-      showSpinner: true,
-      channelRecord: new ChannelRecord(_manualNormalisePVName, _channelsHandler));
-
-    _showCrosshair = new CheckboxViewModel(
-  label: "Show",
-  channelRecord: new ChannelRecord(_showCrosshairPVName, _channelsHandler));
-
-    _crosshairX = new SliderViewModel(
-    maximum: _imageSize,
-    showSpinner: true,
-    channelRecord: new(_crosshairXPVName, _channelsHandler));
-
-    _crosshairY = new SliderViewModel(
-    maximum: _imageSize,
-    showSpinner: true,
-    channelRecord: new(_crosshairYPVName, _channelsHandler));
-
-    _viewerSettings = new DropDownButtonViewModel();
-
-
-    _verticalProfileGraph = new IntensityProfileGraphViewModel(
-      width: _imageSize,
-      height: _graphSize,
-      axisRange_X: new(0, 100),
-      axisRange_Y: new(0, 255),
-      xborderStatus: BorderStatus.Connected,
-      yborderStatus: BorderStatus.Connected,
-      showGrid: true,
-      graphType: GraphType.Line
-      );
-
-    _horizontalProfileGraph = new IntensityProfileGraphViewModel(
-      width: _imageSize,
-      height: _graphSize,
-      axisRange_X: new(0, 100),
-      axisRange_Y: new(0, 255),
-      xborderStatus: BorderStatus.Connected,
-      yborderStatus: BorderStatus.Connected,
-      showGrid: true,
-      graphType: GraphType.Line
-    );
-
-    _intensityMapImageViewer = new ImageViewerViewModel(
-      displayImageScalingFactor: 10.0,
-      imageDataRecord: new(_cameraPVName, _channelsHandler),
-      imageWidthRecord: new(_cameraXSizePVName, _channelsHandler),
-      imageHeightRecord: new(_cameraYSizePVName, _channelsHandler)
-      )
-      {
-        ColourMapOption = ColourMapOption.GreyScale,
-        AutoNormalise = true
-      };
-
-    _intensityMapImageViewer.TooltipText = _cameraPVName;
-
     Task.Run(LoopCameraDataAsync);
 
     InstallAutoNormaliseChannel();
     InstallManualNormalisationChannel();
     InstallColourMapChannel();
     InstallCrosshairChannels();
-    _intensityMapImageViewer.PropertyChanged += OnImageViewerPropertyChanged;
   }
 
   

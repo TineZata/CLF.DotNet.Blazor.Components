@@ -1,11 +1,5 @@
-﻿using Clf.ChannelAccess;
-using Clf.Blazor.Basic.Components.Controls.Interfaces;
+﻿using Clf.Blazor.Basic.Components.Controls.Interfaces;
 using Clf.Blazor.Basic.Components.Controls.Models;
-using Clf.Blazor.Basic.Components.Controls.ViewModels;
-using Clf.Blazor.Basic.Components.Controls.ViewModels.ContainerWidgetViewModels;
-using Clf.Blazor.Basic.Components.Controls.ViewModels.MonitorWidgetViewModels;
-using Clf.Blazor.Basic.Components.Controls.ViewModels.UpdateWidgetViewModels;
-using static Clf.Blazor.Basic.Components.Controls.ViewModels.UpdateWidgetViewModels.ChoiceButtonViewModel;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -38,34 +32,6 @@ namespace Clf.Blazor.Basic.Components.Controls.Helpers
           return Colour.Transparent;
       }
 
-    }
-    
-
-    public static BorderStatus GetBorderStatus(AlarmStatusAndSeverity? alarmStatusAndSeverity, bool isConnected)
-    {
-      var pvStatus = BorderStatus.NotConnected;
-      if (isConnected)
-      {
-        pvStatus = BorderStatus.Connected;
-        if (alarmStatusAndSeverity != null)
-        {
-          switch (alarmStatusAndSeverity.AlarmSeverity_SEVR)
-          {
-            case AlarmSeverity_SEVR.MinorAlarm:
-              pvStatus = BorderStatus.MinorAlarm;
-              break;
-            case AlarmSeverity_SEVR.MajorAlarm:
-              pvStatus = BorderStatus.MajorAlarm;
-              break;
-            case AlarmSeverity_SEVR.InvalidValueAlarm:
-              pvStatus = BorderStatus.Invalid;
-              break;
-          }
-        }
-        return pvStatus;
-      }
-      else
-        return pvStatus;
     }
 
     public static bool GetBorderStatusDisable(BorderStatus borderStatus)
