@@ -22,13 +22,16 @@ namespace Clf.Blazor.Basic.Components.Controls
         [Parameter]
         public int PVElementCount { get; set; } = 1;
         [Parameter]
-        public bool PVIsDisabled { get; set; } = false;
+        public bool PVIsDisabled { get; set; } = true;
         [Parameter]
         public BorderStatus PVBorderStatus { get; set; } = BorderStatus.NotConnected;
 
-		private void PVConnectionChanged(Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs args)
+        private Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs _callbackArgs;
+
+        private void PVConnectionChanged(Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs args)
 		{
-			if (args.op == Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs.CA_OP_CONN_UP)
+            _callbackArgs = args;
+            if (args.op == Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs.CA_OP_CONN_UP)
 			{
 				PVBorderStatus = BorderStatus.Connected;
 				PVIsDisabled = false;
@@ -45,12 +48,13 @@ namespace Clf.Blazor.Basic.Components.Controls
 			return Utilities.GetBorderStatusDisable(PVBorderStatus) || PVIsDisabled;
 		}
 
-		public async Task<EndPointStatus> TaskConnect(bool monitorConnectionChange)
+		public async Task<EndPointStatus> TaskConnect()
         {
-            if (monitorConnectionChange)
-                return await Wrapper.ConnectAsync(PVName, PVDataType, PVElementCount, PVConnectionChanged);
+            await Wrapper.ConnectAsync(PVName, PVDataType, PVElementCount, PVConnectionChanged);
+            if (_callbackArgs.op == Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs.CA_OP_CONN_UP)
+                return EndPointStatus.Okay;
             else
-                return await Wrapper.ConnectAsync(PVName, PVDataType, PVElementCount);
+                return EndPointStatus.Disconnected;
         }
 
         /// <summary>

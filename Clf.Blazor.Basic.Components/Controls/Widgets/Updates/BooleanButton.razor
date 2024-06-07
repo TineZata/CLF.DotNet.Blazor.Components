@@ -81,7 +81,7 @@
 		this.Width = this.Width == 0 ?  BooleanButtonStyle.DEFAULT_WIDTH : this.Width;
 		this.Height = this.Height == 0 ? BooleanButtonStyle.DEFAULT_HEIGHT : this.Height;
 
-		if (!string.IsNullOrEmpty(PVName) && this.TaskConnect(monitorConnectionChange: true).Result == EndPointStatus.Okay)
+		if (!string.IsNullOrEmpty(PVName) && this.TaskConnect().Result == EndPointStatus.Okay)
 		{
 			var value = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName, typeof(bool));
 			if (value != null)

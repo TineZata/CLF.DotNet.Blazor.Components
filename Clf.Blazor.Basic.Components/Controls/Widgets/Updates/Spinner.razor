@@ -106,7 +106,7 @@
 		this.Width = this.Width == 0 ? SpinnerStyle.DEFAULT_WIDTH : this.Width;
 		this.Height = this.Height == 0 ? SpinnerStyle.DEFAULT_HEIGHT : this.Height;
 
-		if (PVName != string.Empty && this.TaskConnect(monitorConnectionChange: true).Result == EndPointStatus.Okay)
+		if (PVName != string.Empty && this.TaskConnect().Result == EndPointStatus.Okay)
 		{
 			Precision = this.TaskGetPREC().Result;
 			Maximum = this.TaskHOPR().Result;

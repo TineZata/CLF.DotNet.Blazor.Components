@@ -12,20 +12,12 @@
 
   <ItemGroup>
     <Compile Remove="Controls\IntensityMap\**" />
-    <Compile Remove="Controls\Widgets\Containers\**" />
-    <Compile Remove="Controls\Widgets\Helpers\**" />
     <Compile Remove="Controls\Widgets\Monitors\**" />
     <Content Remove="Controls\IntensityMap\**" />
-    <Content Remove="Controls\Widgets\Containers\**" />
-    <Content Remove="Controls\Widgets\Helpers\**" />
     <Content Remove="Controls\Widgets\Monitors\**" />
     <EmbeddedResource Remove="Controls\IntensityMap\**" />
-    <EmbeddedResource Remove="Controls\Widgets\Containers\**" />
-    <EmbeddedResource Remove="Controls\Widgets\Helpers\**" />
     <EmbeddedResource Remove="Controls\Widgets\Monitors\**" />
     <None Remove="Controls\IntensityMap\**" />
-    <None Remove="Controls\Widgets\Containers\**" />
-    <None Remove="Controls\Widgets\Helpers\**" />
     <None Remove="Controls\Widgets\Monitors\**" />
   </ItemGroup>
 

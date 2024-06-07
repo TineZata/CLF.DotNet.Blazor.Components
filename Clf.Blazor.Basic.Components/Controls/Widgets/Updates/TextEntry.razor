@@ -1,7 +1,7 @@
 ﻿@using Convergence
 @using Clf.Blazor.Basic.Components.Controls.Models
-@* @using Clf.Blazor.Basic.Components.Controls.Widgets.Containers
-@using Clf.Blazor.Basic.Components.Controls.Widgets.Helpers *@
+@using Clf.Blazor.Basic.Components.Controls.Widgets.Containers
+@using Clf.Blazor.Basic.Components.Controls.Widgets.Helpers *
 @using Microsoft.AspNetCore.Components.Web
 @using Clf.Blazor.Basic.Components.Controls.Helpers
 @using System.ComponentModel
@@ -55,24 +55,24 @@
 
     private string _previousValue = "";
 
-    protected override void OnInitialized()
-    {
-        base.OnInitialized();
-    }
-
     protected override async Task OnInitializedAsync()
     {
+        this.Width = this.Width == 0 ? TextEntryStyle.DEFAULT_WIDTH : this.Width;
+        this.Height = this.Height == 0 ? TextEntryStyle.DEFAULT_HEIGHT : this.Height;
+        
         if (PVName != string.Empty)
         {
-            this.Width = this.Width == 0 ? TextEntryStyle.DEFAULT_WIDTH : this.Width;
-            this.Height = this.Height == 0 ? TextEntryStyle.DEFAULT_HEIGHT : this.Height;
-            if (this.TaskConnect(monitorConnectionChange:true).Result == EndPointStatus.Okay)
-			{
-				Precision = this.TaskGetPREC().Result;
-				if (ShowUnits) Units = this.TaskGetUnits().Result;
-			}
-		}
-        
+            if (this.TaskConnect().Result == EndPointStatus.Okay)
+            {
+                Precision = this.TaskGetPREC().Result;
+                if (ShowUnits) Units = this.TaskGetUnits().Result;
+            }
+        }
+        else
+        {
+            PVBorderStatus = BorderStatus.NotConnected;
+        }
+
     }
 
     private bool GetShowUnits()
