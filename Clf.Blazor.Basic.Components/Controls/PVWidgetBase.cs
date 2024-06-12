@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using static System.Net.Mime.MediaTypeNames;
 
@@ -27,20 +28,25 @@ namespace Clf.Blazor.Basic.Components.Controls
         public BorderStatus PVBorderStatus { get; set; } = BorderStatus.NotConnected;
 
         private Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs _callbackArgs;
+		public SynchronizationContext? SyncContext { get; set; }
 
-        private void PVConnectionChanged(Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs args)
+		public void PVConnectionChanged(Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs args)
 		{
-            _callbackArgs = args;
-            if (args.op == Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs.CA_OP_CONN_UP)
-			{
-				PVBorderStatus = BorderStatus.Connected;
-				PVIsDisabled = false;
-			}
-			else
-			{
-				PVBorderStatus = BorderStatus.NotConnected;
-				PVIsDisabled = true;
-			}
+			SyncContext?.Post(_ =>
+            {
+                _callbackArgs = args;
+                if (args.op == Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs.CA_OP_CONN_UP)
+                {
+                    PVBorderStatus = BorderStatus.Connected;
+                    PVIsDisabled = false;
+                }
+                else
+                {
+                    PVBorderStatus = BorderStatus.NotConnected;
+                    PVIsDisabled = true;
+                }
+                StateHasChanged();
+            }, null);
 		}
 
 		public bool PVGetDisableStatus()

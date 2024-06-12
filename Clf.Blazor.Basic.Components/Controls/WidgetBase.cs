@@ -15,14 +15,6 @@ namespace Clf.Blazor.Basic.Components.Controls
         [Parameter]
         public string Class { get; set; } = "";
 
-        [Obsolete]
-        [Parameter]
-        public bool IsPositionRelative { get; set; } = true;
-
-        [Obsolete]
-        [Parameter]
-        public string Name { get; set; } = string.Empty;
-
         [Parameter]
         public bool IsVisible { get; set; } = true;
 
@@ -40,14 +32,5 @@ namespace Clf.Blazor.Basic.Components.Controls
         public string TooltipText { get; set; } = string.Empty;
         [Parameter]
         public bool ShowTooltip { get; set; } = false;
-
-        public void OnPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            InvokeAsync(StateHasChanged);
-        }
-        public void OnItemsCollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-        {
-            InvokeAsync(StateHasChanged);
-        }
     }
 }

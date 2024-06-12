@@ -6,115 +6,170 @@
 @using Clf.Blazor.Basic.Components.Controls.Helpers
 @using System.ComponentModel
 @using System.Runtime.InteropServices
+@using System.Threading
+@using CaputCallback = Convergence.IO.EPICS.CA.EventCallbackDelegate.WriteCallback
 @inherits PVWidgetBase
 @implements IDisposable
 
 @if (IsVisible)
 {
-  <Alarm BorderStatus="@PVBorderStatus" ContentDisabledTooltip="@(ShowTooltip? TooltipText:string.Empty)" IsContentDisabled="@PVIsDisabled">
-    @if (IsMultiLine)
-    {
-      <Tooltip Text="@(ShowTooltip? TooltipText:string.Empty)">
-        <textarea class="text-area @Class"
-            style="--text-input-width:@GetWidth(); --text-input-height:@GetHeight()"
-            disabled="@ShowTooltip"
-            @bind="Text" @bind:event="oninput" @onkeydown="@OnKeyDownAsync" />
-      </Tooltip>
-    }
-    else
-    {
-      <Tooltip Text="@(ShowTooltip? TooltipText:string.Empty)">
-        <div class="text-entry @Class" style="--text-input-width:@GetWidth(); --text-input-height:@GetHeight()">
-            <input class="text-input" type="text" disabled="@ShowTooltip" show-units="@GetShowUnits()" @bind="Text" @bind:event="oninput" @onkeydown="@OnKeyDownAsync" />
-          @if (GetShowUnits())
-          {
-            <span class="clf-units" disabled="@ShowUnits">@Units</span>
-          }
-        </div>
-      </Tooltip>
-    }
-  </Alarm>
+	<Alarm BorderStatus="@PVBorderStatus" ContentDisabledTooltip="@(ShowTooltip? TooltipText:string.Empty)" IsContentDisabled="@PVIsDisabled">
+		@if (IsMultiLine)
+		{
+			<Tooltip Text="@(ShowTooltip? TooltipText:string.Empty)">
+				<textarea class="text-area @Class"
+						  style="--text-input-width:@GetWidth(); --text-input-height:@GetHeight()"
+						  disabled="@ShowTooltip"
+						  @bind="Text" @bind:event="oninput" @onkeydown="@OnKeyDownAsync" />
+			</Tooltip>
+		}
+		else
+		{
+			<Tooltip Text="@(ShowTooltip? TooltipText:string.Empty)">
+				<div class="text-entry @Class" style="--text-input-width:@GetWidth(); --text-input-height:@GetHeight()">
+					<input class="text-input" type="text" disabled="@ShowTooltip" show-units="@GetShowUnits()" @bind="Text" @bind:event="oninput" @onkeydown="@OnKeyDownAsync" />
+					@if (GetShowUnits())
+					{
+						<span class="clf-units" disabled="@ShowUnits">@Units</span>
+					}
+				</div>
+			</Tooltip>
+		}
+	</Alarm>
 }
 
 @code
 {
-    [Parameter]
-    public string Text { get; set; } = string.Empty;
-    [Parameter]
-    public string Units { get; set; } = string.Empty;
-    [Parameter]
-    public bool ShowUnits { get; set; } = false;
-    [Parameter]
-    public bool IsMultiLine { get; set; } = false;
-    [Parameter]
-    public int Precision { get; set; } = -1;
-    [Parameter]
-    public bool IsDisabledOnEnter { get; set; } = false;
-    [Parameter]
-    public bool WaitForAcknowledgement { get; set; } = false;
+	[Parameter]
+	public string Text { get; set; } = string.Empty;
+	[Parameter]
+	public string Units { get; set; } = string.Empty;
+	[Parameter]
+	public bool ShowUnits { get; set; } = false;
+	[Parameter]
+	public bool IsMultiLine { get; set; } = false;
+	[Parameter]
+	public int Precision { get; set; } = -1;
+	[Parameter]
+	public bool IsDisabledOnEnter { get; set; } = false;
+	[Parameter]
+	public bool WaitForAcknowledgement { get; set; } = false;
 
-    private string _previousValue = "";
+	private string _previousValue = "";
+	public Convergence.IO.EPICS.CA.EventCallbackDelegate.ConnectCallback? _connectCallbackEvent;
+	private Convergence.IO.EPICS.CA.EventCallbackDelegate.WriteCallback? _writeCallbackEvent;
 
-    protected override async Task OnInitializedAsync()
-    {
-        this.Width = this.Width == 0 ? TextEntryStyle.DEFAULT_WIDTH : this.Width;
-        this.Height = this.Height == 0 ? TextEntryStyle.DEFAULT_HEIGHT : this.Height;
-        
-        if (PVName != string.Empty)
-        {
-            if (this.TaskConnect().Result == EndPointStatus.Okay)
-            {
-                Precision = this.TaskGetPREC().Result;
-                if (ShowUnits) Units = this.TaskGetUnits().Result;
-            }
-        }
-        else
-        {
-            PVBorderStatus = BorderStatus.NotConnected;
-        }
+	public void OnConnectionChanged(Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs args)
+	{
+		SyncContext?.Post(_ =>
+		{
+			if (args.op == Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs.CA_OP_CONN_UP)
+			{
+				PVBorderStatus = BorderStatus.Connected;
+				PVIsDisabled = false;
+			}
+			else
+			{
+				PVBorderStatus = BorderStatus.NotConnected;
+				PVIsDisabled = true;
+			}
+			StateHasChanged();
+		}, null);
+	}
 
-    }
+	private void OnCaputCallback(Convergence.IO.EPICS.CA.EventCallbackArgs args)
+	{
+		// This should confirm is the PV was written to successfully
+		string result = (string)Convergence.IO.EPICS.CA.Helpers.DecodeEventData(args);
+		// If the PV was not written to successfully, revert the previous value
+		// if (Text != result)
+		// 	Text = _previousValue;
+		// else
+		// 	_previousValue = Text;
+	}
 
-    private bool GetShowUnits()
-    {
-        return (!string.IsNullOrEmpty(Units) && ShowUnits);
-    }
+	protected override async Task OnInitializedAsync()
+	{
+		await base.OnInitializedAsync();
+		_connectCallbackEvent += OnConnectionChanged;
+		_writeCallbackEvent += OnCaputCallback;
+		SyncContext = SynchronizationContext.Current;
+		this.Width = this.Width == 0 ? TextEntryStyle.DEFAULT_WIDTH : this.Width;
+		this.Height = this.Height == 0 ? TextEntryStyle.DEFAULT_HEIGHT : this.Height;
 
-    private string GetWidth()
-    {
-        return Width != 0 ? $"{Width}px" : "var(--clf-text-entry-default-width)";
-    }
+		if (PVName != string.Empty)
+		{
+			SyncContext?.Post(async _ =>
+			{
+				await Convergence.IO.EPICS.CA.Wrapper.ConnectAsync(PVName, PVDataType, PVElementCount, _connectCallbackEvent);
+				// if (this.TaskConnect().Result == EndPointStatus.Okay)
+				// {
+				// 	Precision = this.TaskGetPREC().Result;
+				// 	if (ShowUnits) Units = this.TaskGetUnits().Result;
+				// 	// Get the initial value of the PV
+				// 	var rbv = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName, typeof(string));
+				// 	var value = rbv.Value as string;
+				// 	if (value != null)
+				// 	{
+				// 		_previousValue = Text;
+				// 		Text = value;
+				// 		StateHasChanged();
+				// 	}
+				// 	else
+				// 	{
+				// 		Text = _previousValue;
+				// 	}
 
-    private string GetHeight()
-    {
-        return Height != 0 ? $"{Height}px" : "var(--clf-text-entry-default-height)";
-    }
+				// }
+			}, null);
+		}
+		else
+		{
+			PVBorderStatus = BorderStatus.NotConnected;
+		}
+
+	}
+
+	private bool GetShowUnits()
+	{
+		return (!string.IsNullOrEmpty(Units) && ShowUnits);
+	}
+
+	private string GetWidth()
+	{
+		return Width != 0 ? $"{Width}px" : "var(--clf-text-entry-default-width)";
+	}
+
+	private string GetHeight()
+	{
+		return Height != 0 ? $"{Height}px" : "var(--clf-text-entry-default-height)";
+	}
 
 
-    void IDisposable.Dispose()
-    {
-        Convergence.IO.EPICS.CA.Wrapper.Disconnect(PVName);
-    }
-
-    public async Task OnKeyDownAsync(KeyboardEventArgs e)
-    {
-        //only try to write to the PV if Connected and "Enter" key is pressed
-        if (PVBorderStatus == BorderStatus.Connected && (e.Code == "Enter" || e.Code == "NumpadEnter"))
-        {
-            // Do CaPutAsync with a callback to update the value
-            var result = await Convergence.IO.EPICS.CA.Wrapper.CaputAsync(PVName, Text, typeof(string));
-            // Do a CaGetAsync to check if the value was written
-            var rbv = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName, typeof(string));
-            if (rbv.Value as string == Text)
-                _previousValue = Text;
-            else
-                Text = _previousValue;
-        }
-    }
-
-    private void Dispose()
+	void IDisposable.Dispose()
 	{
 		Convergence.IO.EPICS.CA.Wrapper.Disconnect(PVName);
 	}
-    
+
+	public async Task OnKeyDownAsync(KeyboardEventArgs e)
+	{
+		//only try to write to the PV if Connected and "Enter" key is pressed
+		if (PVBorderStatus == BorderStatus.Connected && (e.Code == "Enter" || e.Code == "NumpadEnter"))
+		{
+			SyncContext?.Post(async _ =>
+			{
+				// Do CaPutAsync with a callback to update the value
+				await Convergence.IO.EPICS.CA.Wrapper.CaputAsync(PVName, Text, typeof(string), 1, _writeCallbackEvent);
+				//StateHasChanged();
+			}, null);
+		}
+	}
+
+	private void Dispose()
+	{
+		_connectCallbackEvent -= PVConnectionChanged;
+		_writeCallbackEvent -= OnCaputCallback;
+		Convergence.IO.EPICS.CA.Wrapper.Disconnect(PVName);
+	}
+
 }
