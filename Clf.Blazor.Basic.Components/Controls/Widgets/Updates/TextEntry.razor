@@ -57,7 +57,8 @@
 
 	private string _previousValue = "";
 	public Convergence.IO.EPICS.CA.EventCallbackDelegate.ConnectCallback? _connectCallbackEvent;
-	private Convergence.IO.EPICS.CA.EventCallbackDelegate.WriteCallback? _writeCallbackEvent;
+	private Convergence.IO.EPICS.CA.EventCallbackDelegate.WriteCallback? _putCallbackEvent;
+	private event Func<Task> _asyncEventOccurred;
 
 	public void OnConnectionChanged(Convergence.IO.EPICS.CA.ConnectionEventCallbackArgs args)
 	{
@@ -67,6 +68,7 @@
 			{
 				PVBorderStatus = BorderStatus.Connected;
 				PVIsDisabled = false;
+				_asyncEventOccurred.Invoke();
 			}
 			else
 			{
@@ -92,7 +94,8 @@
 	{
 		await base.OnInitializedAsync();
 		_connectCallbackEvent += OnConnectionChanged;
-		_writeCallbackEvent += OnCaputCallback;
+		_putCallbackEvent += OnCaputCallback;
+		_asyncEventOccurred += OnGetTextEntrySnapshot;
 		SyncContext = SynchronizationContext.Current;
 		this.Width = this.Width == 0 ? TextEntryStyle.DEFAULT_WIDTH : this.Width;
 		this.Height = this.Height == 0 ? TextEntryStyle.DEFAULT_HEIGHT : this.Height;
@@ -151,6 +154,25 @@
 		Convergence.IO.EPICS.CA.Wrapper.Disconnect(PVName);
 	}
 
+	public async Task OnGetTextEntrySnapshot()
+	{
+		SyncContext?.Post(async _ =>
+		{
+			var rbv = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName, typeof(string));
+			var value = rbv.Value as string;
+			if (value != null)
+			{
+				_previousValue = Text;
+				Text = value;
+				StateHasChanged();
+			}
+			else
+			{
+				Text = _previousValue;
+			}
+		}, null);
+	}
+
 	public async Task OnKeyDownAsync(KeyboardEventArgs e)
 	{
 		//only try to write to the PV if Connected and "Enter" key is pressed
@@ -159,8 +181,9 @@
 			SyncContext?.Post(async _ =>
 			{
 				// Do CaPutAsync with a callback to update the value
-				await Convergence.IO.EPICS.CA.Wrapper.CaputAsync(PVName, Text, typeof(string), 1, _writeCallbackEvent);
-				//StateHasChanged();
+				await Convergence.IO.EPICS.CA.Wrapper.CaputAsync(PVName, Text, typeof(string));
+				StateHasChanged();
+
 			}, null);
 		}
 	}
@@ -168,7 +191,8 @@
 	private void Dispose()
 	{
 		_connectCallbackEvent -= PVConnectionChanged;
-		_writeCallbackEvent -= OnCaputCallback;
+		_putCallbackEvent -= OnCaputCallback;
+		_asyncEventOccurred -= OnGetTextEntrySnapshot;
 		Convergence.IO.EPICS.CA.Wrapper.Disconnect(PVName);
 	}
 
