@@ -7,9 +7,12 @@
 @using System.ComponentModel
 @using System.Runtime.InteropServices
 @using System.Threading
+@using Microsoft.JSInterop
 @using CaputCallback = Convergence.IO.EPICS.CA.EventCallbackDelegate.WriteCallback
 @inherits PVWidgetBase
 @implements IDisposable
+@inject IJSRuntime JSRuntime
+
 
 @if (IsVisible)
 {
@@ -105,25 +108,6 @@
 			SyncContext?.Post(async _ =>
 			{
 				await Convergence.IO.EPICS.CA.Wrapper.ConnectAsync(PVName, PVDataType, PVElementCount, _connectCallbackEvent);
-				// if (this.TaskConnect().Result == EndPointStatus.Okay)
-				// {
-				// 	Precision = this.TaskGetPREC().Result;
-				// 	if (ShowUnits) Units = this.TaskGetUnits().Result;
-				// 	// Get the initial value of the PV
-				// 	var rbv = await Convergence.IO.EPICS.CA.Wrapper.CagetAsync(PVName, typeof(string));
-				// 	var value = rbv.Value as string;
-				// 	if (value != null)
-				// 	{
-				// 		_previousValue = Text;
-				// 		Text = value;
-				// 		StateHasChanged();
-				// 	}
-				// 	else
-				// 	{
-				// 		Text = _previousValue;
-				// 	}
-
-				// }
 			}, null);
 		}
 		else
@@ -190,10 +174,9 @@
 
 	private void Dispose()
 	{
+		Convergence.IO.EPICS.CA.Wrapper.Disconnect(PVName);
 		_connectCallbackEvent -= PVConnectionChanged;
 		_putCallbackEvent -= OnCaputCallback;
 		_asyncEventOccurred -= OnGetTextEntrySnapshot;
-		Convergence.IO.EPICS.CA.Wrapper.Disconnect(PVName);
 	}
-
 }
